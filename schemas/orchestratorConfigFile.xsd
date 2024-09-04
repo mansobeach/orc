@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+
+ <xs:include schemaLocation="./common_types.xsd"/>
+
+  <xs:complexType name="Type_DataProvider">
+      <xs:sequence>
+         <xs:element name="DataType"      type="xs:string"/>
+         <xs:element name="FileType"      type="xs:string"/>
+         <xs:element name="Directory"     type="xs:string" />
+      </xs:sequence>
+      <xs:attribute name="isTriggerType"  type="YesNoType"  />
+  </xs:complexType>
+
+
+ <xs:complexType name="Type_ListDataProvider">
+  <xs:sequence>
+   <xs:element name="DataProvider" type="Type_DataProvider"          maxOccurs="unbounded"/>
+  </xs:sequence>
+ </xs:complexType>
+
+
+ <xs:complexType name="Type_PriorityRule">
+      <xs:attribute name="rank"        type="posIntType"             use="required"/>
+      <xs:attribute name="class"       type="xs:string"              use="required"/>
+      <xs:attribute name="type"        type="xs:string"              use="required"/>
+      <xs:attribute name="sort"        type="xs:string"              use="required"/>
+ </xs:complexType>
+
+ <xs:complexType name="Type_ListPriorityRule">
+  <xs:sequence>
+   <xs:element name="PriorityRule" type="Type_PriorityRule"          maxOccurs="unbounded"/>
+  </xs:sequence>
+ </xs:complexType>
+
+ <xs:complexType name="Type_ProcessingRule">  
+      <xs:sequence>
+         <xs:element name="executable"       type="xs:string" />
+         <xs:element name="List_of_Inputs"   type="xs:string"  maxOccurs="1"/>
+      </xs:sequence>
+      
+      <xs:attribute name="dataType"       type="xs:string"              use="optional"/>
+      <xs:attribute name="triggerType"    type="xs:string"              use="required"/>
+      <xs:attribute name="coverage"       type="xs:string"              use="optional"/>
+
+ </xs:complexType>
+
+ <xs:complexType name="Type_ListProcessingRule">
+  <xs:sequence>
+   <xs:element name="ProcessingRule" type="Type_ProcessingRule" minOccurs="1" maxOccurs="unbounded"/>
+  </xs:sequence>
+ </xs:complexType>
+
+ <xs:complexType name="FreqType">
+   <xs:simpleContent>
+     <xs:extension base="xs:string">
+       <xs:attribute name="unit" type="UnitIsSecondsType" use="required"/>
+     </xs:extension>
+   </xs:simpleContent>
+ </xs:complexType>
+
+ <xs:complexType name="Type_Miscelanea">
+  <xs:sequence>
+    <xs:element name="ArchiveHandler"                 type="xs:string"                    maxOccurs="1"/>
+    <xs:element name="PollingDir"                     type="xs:string"                    maxOccurs="1"/>
+    <xs:element name="PollingFreq"                    type="FreqType"                     maxOccurs="1"/>
+    <xs:element name="ParallelIngestions"             type="posIntType"                   maxOccurs="1"/>
+    <xs:element name="SchedulingFreq"                 type="FreqType"                     maxOccurs="1"/>
+    <xs:element name="ResourceManager"                type="xs:string"                    maxOccurs="1"/>
+    <xs:element name="ProcWorkingDir"                 type="xs:string"                    maxOccurs="1"/>
+    <xs:element name="SuccessDir"                     type="xs:string"                    maxOccurs="1"/>
+    <xs:element name="FailureDir"                     type="xs:string"                    maxOccurs="1"/>
+    <xs:element name="BreakPointDir"                  type="xs:string"                    maxOccurs="1"/>
+    <xs:element name="TmpDir"                         type="xs:string"                    maxOccurs="1"/>
+  </xs:sequence>
+ </xs:complexType>
+
+ <xs:complexType name="InventoryType">
+  <xs:sequence>
+   <xs:element name="Database_Adapter"       type="xs:string"/>
+   <xs:element name="Database_Host"          type="xs:string"/>
+   <xs:element name="Database_Port"          type="xs:string"/>
+   <xs:element name="Database_Name"          type="xs:string"/>
+   <xs:element name="Database_User"          type="xs:string"/>
+   <xs:element name="Database_Password"      type="xs:string"/>
+  </xs:sequence>
+ </xs:complexType>
+
+
+ <xs:element name="OrchestratorConfiguration">
+  <xs:complexType>
+   <xs:sequence>
+       <xs:element name="List_of_DataProviders"         type="Type_ListDataProvider"      maxOccurs="1"/>
+       <xs:element name="List_of_PriorityRules"         type="Type_ListPriorityRule"      maxOccurs="1"/>
+       <xs:element name="List_of_ProcessingRules"       type="Type_ListProcessingRule"    maxOccurs="1"/>
+       <xs:element name="List_of_Breakpoints"           type="xs:string"                  maxOccurs="1"/>
+       <xs:element name="Miscelanea"                    type="Type_Miscelanea"            maxOccurs="1"/>
+       <xs:element name="Inventory"                     type="InventoryType"              maxOccurs="1"/>
+   </xs:sequence>
+  </xs:complexType>
+ </xs:element>
+
+</xs:schema>

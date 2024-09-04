@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	
+	<xs:element name="date_pattern" type="xs:string"/>
+	
+	<xs:element name="formatter">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="date_pattern"/>
+			</xs:sequence>
+			<xs:attribute name="type"     type="xs:string" use="required"/>
+			<xs:attribute name="pattern"  type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+
+		<xs:complexType name="outputtertype">
+			<xs:sequence>
+				<xs:element ref="type"/>
+				<xs:element name="filename"      type="xs:string"  minOccurs="0" maxOccurs="1" />
+				<xs:element ref="formatter"/>
+				<xs:element name="trunc"         type="xs:boolean" minOccurs="0" maxOccurs="1" />
+            <xs:element name="maxsize"       type="xs:integer" minOccurs="0" maxOccurs="1" />
+            <xs:element name="max_backups"   type="xs:integer" minOccurs="0" maxOccurs="1" />
+            <xs:element name="maxtime"       type="xs:integer" minOccurs="0" maxOccurs="1" />
+			</xs:sequence>
+			<xs:attribute name="name"  type="xs:string" use="required"/>
+         <xs:attribute name="level" type="xs:string" use="required"/>
+		</xs:complexType>
+         
+	<xs:element name="log4r_config">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="pre_config"/>
+				<xs:element name="outputter"  type="outputtertype" maxOccurs="unbounded" />
+				<xs:element ref="logger"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+   <xs:element name="logger">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="outputter" type="xs:string" minOccurs="1" maxOccurs="unbounded" />
+			</xs:sequence>
+			<xs:attribute name="name"  type="xs:string"  use="required"/>
+			<xs:attribute name="level" type="xs:string"  use="required"/>
+			<xs:attribute name="trace" type="xs:boolean" use="required"/>
+		</xs:complexType>
+	</xs:element>
+      
+	<xs:element name="outputters" type="xs:string"/>
+   
+	<xs:element name="parameter">
+		<xs:complexType>
+			<xs:attribute name="name" type="xs:string" use="required"/>
+			<xs:attribute name="value" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	
+   <xs:element name="pre_config">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="parameter"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	
+	<xs:element name="type" type="xs:string"/>
+</xs:schema>
