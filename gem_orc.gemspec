@@ -4,11 +4,11 @@ include ORC
 Gem::Specification.new do |s|
   s.name        = 'orc'
   s.version     = "#{ORC::VERSION}"
-  s.licenses    = ['Nonstandard']
+  s.licenses    = ['MIT']
   s.summary     = "DEC/ORC component"
   s.description = "Generic Orchestrator"
   s.authors     = ["Elecnor Deimos"]
-  s.email       = 'borja.lopez@deimos-space.com'
+  s.email       = 'borja.lopez.fernandez@gmail.com'
   
   s.required_ruby_version = '>= 2.7'
   
@@ -44,9 +44,9 @@ Gem::Specification.new do |s|
                      'orcValidateConfig'
                      ]
 
-  s.homepage    = 'http://www.deimos-space.com'
+  s.homepage    = 'https://github.com/mansobeach/orc'
   
-  s.metadata    = { "source_code_uri" => "https://github.com/example/example" }
+  s.metadata    = { "source_code_uri" => "https://github.com/mansobeach/orc" }
   
 
   ## ----------------------------------------------
@@ -54,6 +54,7 @@ Gem::Specification.new do |s|
   ### PENDING COMPLETION OF MINARC 1.1.0
   ### s.add_dependency('minarc', '> 1.0.34')
 
+  s.add_dependency('dotenv', '~> 3.1')
   s.add_dependency('activerecord-import', '~> 1.0')
   s.add_dependency('log4r', '~> 1.0')  
   s.add_dependency('pg', '~> 1.2.3')

@@ -33,13 +33,7 @@
 #  -h          shows this help
 #  -v          shows version number
 #    
-# 
-# == Author
-# DEIMOS-Space S.L.
-#
-# == Copyright
-# Copyright (c) 2020 ESA - DEIMOS Space S.L.
-#
+
 
 require 'getoptlong'
 
@@ -344,7 +338,7 @@ end
 def usage
    fullpathFile = File.expand_path(__FILE__)
    
-   value = `#{"head -40 #{fullpathFile}"}`
+   value = `#{"head -36 #{fullpathFile}"}`
       
    value.lines.drop(1).each{
       |line|

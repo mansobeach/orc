@@ -15,34 +15,11 @@
 #     --help                shows this help
 #     --version             shows version number      
 #
-# 
-# == Author
-#
-# DEIMOS-Space S.L.
-#
-#
-# == Copyright
-#
-# Copyright (c) 2009 ESA - DEIMOS Space S.L.
 #
 # 
 # == BOLG Reference (http://tolkiengateway.net/wiki/Bolg)
 #
 #
-
-#########################################################################
-##
-## === Ruby source for #Orchestrator
-##
-## === Written by DEIMOS Space S.L.
-##
-## === DEC/ORC => ORC Component
-## 
-## Git: $Id: orchestrator.rb,v 1.5 2009/03/26 09:17:23 decdev Exp $
-##
-## module ORC
-##
-#########################################################################
 
 require 'getoptlong'
 
@@ -374,7 +351,7 @@ private
 def usage
    fullpathFile = File.expand_path(__FILE__)
       
-   value = `#{"head -32 #{fullpathFile}"}`
+   value = `#{"head -21 #{fullpathFile}"}`
       
    value.lines.drop(1).each{
       |line|
