@@ -1,0 +1,301 @@
+#!/usr/bin/env ruby
+
+# == Synopsis
+#
+# This is an Orchestrator command line tool that schedules new jobs.
+#
+#
+# -Q flag:
+#
+# This option is use to only queue pending files.
+# 
+#
+# == Usage
+#
+# orcScheduler  -c <cmd>  | -Q
+#
+#     --command             [ start | stop | status ]
+#     --Queue               it queues pending files
+#     --Debug               shows Debug info during the execution
+#     --help                shows this help
+#     --version             shows version number      
+#
+#
+# == Author
+#
+# DEIMOS-Space S.L. (BOLF)
+#
+#
+# == Copyright
+#
+# Copyright (c) 2009 ESA - DEIMOS Space S.L.
+#
+
+#########################################################################
+#
+# === ORC -> Orchestrator
+#
+# Git: $Id: orcScheduler,v 1.3 2009/03/17 12:46:28 decdev Exp $
+#
+#########################################################################
+
+require 'getoptlong'
+
+require 'cuc/Listener'
+require 'cuc/Log4rLoggerFactory'
+require 'cuc/DirUtils'
+require 'cuc/CheckerProcessUniqueness'
+require 'cuc/CommandLauncher'
+
+require 'orc/ORC_Environment'
+
+## ---------------------------------------------------------
+##
+## MAIN script function
+def main
+
+   include ORC
+   include CUC::DirUtils
+   include CUC::CommandLauncher
+   
+   @command            = ""
+   @bQueueFiles        = false
+   @isDebugMode        = false
+   @bShowVersion       = false
+   @bShowUsage         = false
+   
+   
+   opts = GetoptLong.new(        
+
+      ["--command", "-c",	      GetoptLong::REQUIRED_ARGUMENT],
+      ["--Queue", "-Q",          GetoptLong::NO_ARGUMENT],
+      ["--Debug", "-D",          GetoptLong::NO_ARGUMENT],
+      ["--usage", "-u",          GetoptLong::NO_ARGUMENT],                   
+      ["--help", "-h",           GetoptLong::NO_ARGUMENT],
+      ["--version", "-v",        GetoptLong::NO_ARGUMENT]
+      )
+
+   begin
+      opts.each do |opt, arg|
+         case opt 
+            when "--command"  then        @command             = arg
+            when "--Queue"    then        @bQueueFiles         = true
+            when "--Debug"    then        @isDebugMode         = true                                    	                  
+            when "--help"     then        @bShowUsage          = true
+            when "--usage"    then        @bShowUsage          = true
+            when "--version"  then        @bShowVersion        = true
+         end
+      end
+   rescue Exception => e
+      puts e.to_s
+      exit(99)
+   end 
+     
+   if @bShowVersion == true then
+      print("\nESA - DEIMOS-Space S.L. ", File.basename($0), " Version: [#{ORC::VERSION}]", "\n")
+      hRecord = ORC::CHANGE_RECORD
+      hRecord.each_pair{|key, value|
+         puts "#{key} => #{value}"
+      }
+      exit(0)
+   end
+
+   if @command == "" and @bQueueFiles == false then
+      usage
+      exit(66)
+   end 
+
+   if @command != "" and @bQueueFiles == true then
+      usage
+      exit(66)
+   end 
+
+   ## -------------------------------------------------------
+
+   if self.checkEnvironmentEssential == false then
+      puts
+      self.printEnvironmentError
+      puts
+      exit(99)
+   end
+
+   ## -------------------------------------------------------
+   
+   checkModuleIntegrity 
+   
+   @orcConfigDir       = ENV['ORC_CONFIG']
+
+   require 'orc/OrchestratorScheduler'
+
+   loggerFactory = CUC::Log4rLoggerFactory.new("Scheduler", "#{@orcConfigDir}/orchestrator_log_config.xml")
+   
+   if @isDebugMode then
+      loggerFactory.setDebugMode
+   end
+      
+   @logger = loggerFactory.getLogger
+   
+   if @logger == nil then
+      puts
+		puts "Could not initialize logging system !  :-("
+      puts "Check ORC logs configuration under \"#{@orcConfigDir}/orchestrator_log_config.xml\"" 
+		exit(99)
+   end
+
+   ## ---------------------------------------------
+   ##
+   ## Just queue files present in Pending2QueueFiles
+   if @bQueueFiles == true then
+      puts "Queueing new files"
+      @OrcSch = ORC::OrchestratorScheduler.new(@logger, @isDebugMode)
+
+      if @isDebugMode == true then
+         @OrcSch.setDebugMode
+      end
+
+      @OrcSch.enqueuePendingFiles
+      exit(0)
+   end
+   ## ---------------------------------------------
+   case @command
+      when "start"   then start         
+      when "stop"    then stopScheduler
+      when "status"  then status 
+      when "abort"   then puts "abort"
+   else
+      puts "wrong command argument"
+      usage
+      exit(99)
+   end
+   ## ---------------------------------------------
+   
+end 
+
+## main
+##
+## -------------------------------------------------------------
+
+private
+
+
+def start
+
+   msg = "[ORC_007] Starting #{File.basename(File.expand_path(__FILE__))} daemon / debug = #{@isDebugMode}"
+   @logger.info(msg)
+         
+   @OrcSch  = ORC::OrchestratorScheduler.new(@logger, @isDebugMode)
+   
+   if @isDebugMode == true then
+      @OrcSch.setDebugMode
+   end
+
+   listener = CUC::Listener.new(File.basename($0), "", 0, @OrcSch.method("schedule").to_proc)       
+
+   if @isDebugMode == true then
+      listener.setDebugMode
+   end
+	
+   # ---------------	   
+   # Start server
+   listener.run
+   # ---------------	
+   
+end
+## -------------------------------------------------------------
+##
+
+## It stops the Orchestrator scheduler 
+   
+def stopScheduler
+   checker = CUC::CheckerProcessUniqueness.new(File.basename($0), "", true)
+   pid     = checker.getRunningPID
+      
+   if pid == false then
+         msg = "There was no #{File.basename(File.expand_path(__FILE__))} daemon running"
+         puts msg
+         @logger.debug(msg)
+         exit(99)
+   else
+         @logger.debug("Sending signal SIGKILL to Process #{pid} to kill the SchedulerComponent")
+         Process.kill(9, pid.to_i)         
+	      checker.release
+         puts "Scheduler Stopped"
+   end
+end
+## -------------------------------------------------------------
+##
+##
+## It restarts the Orchestrator scheduler 
+def restart
+   checker = CUC::CheckerProcessUniqueness.new(File.basename($0), "", true)
+   pid     = checker.getRunningPID
+      
+   if pid == false then
+      msg = "There was no #{File.basename(File.expand_path(__FILE__))} daemon running"
+      puts msg
+      @logger.debug(msg)
+      exit(99)
+   else
+      @logger.debug("Sending signal SIGTERM to Process #{pid} to kill schedulerComponent")
+      Process.kill(15, pid.to_i)
+      @OrcSch = ORC::OrchestratorScheduler.new(@logger, @isDebugMode)
+   end
+end
+## -----------------------------------------------------------
+##
+## It checks whether the Listener is running or not
+   
+def status   
+   checker = CUC::CheckerProcessUniqueness.new(File.basename($0), "", true)
+   if @isDebugMode == true then
+      checker.setDebugMode
+   end
+   ret = checker.isRunning
+       
+   if ret == false then
+      msg = "There was no #{File.basename(File.expand_path(__FILE__))} daemon running"
+      puts msg
+      @logger.debug(msg)
+   else
+      puts "There is a daemon running for the SchedulerComponent with pid #{checker.getRunningPID}"
+      @logger.debug("There is a daemon running for the SchedulerComponent with pid #{checker.getRunningPID}")           
+   end
+end
+## -------------------------------------------------------------
+##
+## Check that everything needed by the class is present.
+def checkModuleIntegrity
+   bDefined = true     
+   if !ENV['ORC_CONFIG'] then
+      puts "\nORC_CONFIG environment variable not defined !\n"
+      bDefined = false
+   end      
+   if bDefined == false then
+      puts "\nError in schedulerComponent.rb::checkModuleIntegrity :-(\n\n"
+      exit(99)
+   end                             
+end
+## -------------------------------------------------------------
+
+## -------------------------------------------------------------
+
+def usage
+   fullpathFile = File.expand_path(__FILE__)
+      
+   value = `#{"head -33 #{fullpathFile}"}`
+      
+   value.lines.drop(1).each{
+      |line|
+      len = line.length - 1
+      puts line[2, len]
+   }
+end
+
+## -------------------------------------------------------------
+
+
+## =============================================================================
+## Start of the main body
+main
+## End of the main body
+## =============================================================================

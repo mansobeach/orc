@@ -1,0 +1,308 @@
+#!/usr/bin/env ruby
+
+#
+# == Usage
+# orcManageDB --create-tables | --drop-tables
+#     --create-tables   create all minarc required tables
+#     --drop-tables     drops all minarc tables
+#     --Update-tables   performs a migration update of minarc tables
+#     --export-rows     it exports all rows
+#     --help            shows this help
+# 
+# == Author
+# DEIMOS-Space S.L.
+#
+# == Copyright
+# Copyright (c) 2008 ESA - DEIMOS Space S.L.
+#
+
+#########################################################################
+###
+### === Ruby source for #orcManageDB executable
+###
+### === Written by DEIMOS Space S.L. (bolf)
+###
+### === Orchestrator (orc)
+### 
+### module ORC
+###
+#########################################################################
+
+require 'rubygems'
+require 'active_record'
+require 'getoptlong'
+
+require 'cuc/Log4rLoggerFactory'
+
+require 'orc/ORC_Environment'
+
+
+# MAIN script function
+def main
+
+   include ORC
+
+   @bUp           = false
+   @bDown         = false
+   @bUpdate       = false
+   @bExport       = false
+   @bShowVersion  = false
+   @bShowUsage    = false
+   
+   opts = GetoptLong.new(
+     ["--drop-tables",     "-d",       GetoptLong::NO_ARGUMENT],
+     ["--create-tables",   "-c",       GetoptLong::NO_ARGUMENT],
+     ["--Update-tables",   "-U",       GetoptLong::NO_ARGUMENT],
+     ["--export-rows",     "-e",       GetoptLong::NO_ARGUMENT],
+     ["--version", "-v",               GetoptLong::NO_ARGUMENT],
+     ["--Debug", "-D",                 GetoptLong::NO_ARGUMENT],
+     ["--usage",   "-u",               GetoptLong::NO_ARGUMENT],
+     ["--help",            "-h",       GetoptLong::NO_ARGUMENT]
+     )
+    
+   begin
+      opts.each do |opt, arg|
+         case opt      
+            when "--create-tables"     then @bUp                  = true
+            when "--drop-tables"       then @bDown                = true
+            when "--Update-tables"     then @bUpdate              = true
+            when "--export-rows"       then @bExport              = true
+            when "--usage"             then @bShowUsage           = true
+			   when "--help"              then @bShowUsage           = true
+            when "--Debug"             then @isDebugMode          = true 
+            when "--version"           then @bShowVersion         = true
+         end
+      end
+   rescue Exception => e
+      puts e.to_s
+      exit(99)
+   end
+
+   if @bShowVersion == true then
+      print("\nESA - DEIMOS-Space S.L. ", File.basename($0), " Version: [#{ORC::VERSION}]", "\n")
+      hRecord = ORC::CHANGE_RECORD
+      hRecord.each_pair{|key, value|
+         puts "#{key} => #{value}"
+      }
+      exit(0)
+   end
+
+   ## -------------------------------------------------------
+
+   if @bShowUsage == true then
+      usage
+      exit(0)
+   end
+
+   ## -------------------------------------------------------
+
+   if @bDown and @bUp then
+      usage
+      exit(0)
+   end
+
+   if !@bDown and !@bUp and !@bUpdate and !@bExport then 
+      usage
+      exit(66)
+   end
+
+   ## -------------------------------------------------------
+
+   if self.checkEnvironmentEssential == false then
+      puts
+      self.printEnvironmentError
+      puts
+      exit(99)
+   end
+
+   ## -------------------------------------------------------
+
+   ## ----------------------------------
+   ## initialize logger
+   
+   @orcConfigDir = ENV['ORC_CONFIG']
+   
+   loggerFactory = CUC::Log4rLoggerFactory.new("manageDB ", "#{@orcConfigDir}/orchestrator_log_config.xml")
+   
+   if @isDebugMode then
+      loggerFactory.setDebugMode
+   end
+      
+   @logger = loggerFactory.getLogger   
+   if @logger == nil then
+      puts
+		puts "Error in OrchestratorIngester::initialize"
+     	puts "Could not initialize logging system !  :-("
+      puts "Check ORC logs configuration under \"#{@orcConfigDir}/orchestrator_log_config.xml\"" 
+ 	   puts
+   	exit(99)
+   end
+
+   ## ----------------------------------
+
+   if @isDebugMode == true then
+      self.log_environment(@logger)
+   end
+
+    ## ----------------------------------
+
+   require 'orc/ORC_Migrations'
+   require 'orc/ORC_DataModel'
+   
+
+   @dbName = ENV['ORC_DATABASE_NAME']
+
+   if @bDown then
+      begin
+     
+         if Pending2QueueFile.table_exists?() == true then
+            CreatePending2QueueFiles.down
+         end
+#         if ProductionTimeline.table_exists?() == true then
+#            CreateProductionTimelines.down
+#         end
+
+
+         if SuccessfulTriggerProduct.table_exists?() == true then
+            CreateSuccessfulTriggerProducts.down
+         end
+
+         if FailingTriggerProduct.table_exists?() == true then
+            CreateFailingTriggerProducts.down
+         end
+
+         if DiscardedTriggerProduct.table_exists?() == true then
+            CreateDiscardedTriggerProducts.down
+         end
+
+         if OrchestratorQueue.table_exists?() == true then
+            CreateOrchestratorQueue.down
+         end
+
+         if ObsoleteTriggerProduct.table_exists?() == true then
+            CreateObsoleteTriggerProducts.down
+         end
+
+         if TriggerProduct.table_exists?() == true then
+            CreateTriggerProducts.down
+         end
+
+#         if MessageParameter.table_exists?() == true then
+#            CreateMessageParameters.down
+#         end
+
+#         if OrchestratorMessage.table_exists?() == true then
+#            CreateOrchestratorMessages.down
+#         end
+         
+#          if RunningJob.table_exists?() == true then
+#             CreateRunningJobs.down
+#          end
+
+               
+         if File.exist?(@dbName) == true then
+            File.delete(@dbName)
+         end
+
+         @logger.info("[ORC_000] Removed ORC tables")
+
+
+      rescue Exception => e
+         if @isDebugMode == true then
+            @logger.debug(e.backtrace)
+         end
+         @logger.error("[ORC_705] #{e.to_s}")
+         exit(99)
+      end
+
+    end
+
+   if @bUp then
+      begin
+
+         begin
+         if TriggerProduct.table_exists?() == false then
+            CreateTriggerProducts.up
+         end
+         rescue Exception => e
+            if @isDebugMode == true then
+               @logger.debug(e.backtrace)
+            end
+            @logger.error("[ORC_705] #{e.to_s}")
+            raise
+         end
+
+         if Pending2QueueFile.table_exists?() == false then
+            CreatePending2QueueFiles.up
+         end
+
+#         if ProductionTimeline.table_exists?() == false then
+#            CreateProductionTimelines.up
+#         end
+
+         if SuccessfulTriggerProduct.table_exists?() == false then
+            CreateSuccessfulTriggerProducts.up
+         end
+
+         if FailingTriggerProduct.table_exists?() == false then
+            CreateFailingTriggerProducts.up
+         end
+
+         if DiscardedTriggerProduct.table_exists?() == false then
+            CreateDiscardedTriggerProducts.up
+         end
+
+         if OrchestratorQueue.table_exists?() == false then
+            CreateOrchestratorQueue.up
+         end
+
+         if ObsoleteTriggerProduct.table_exists?() == false then
+            CreateObsoleteTriggerProducts.up
+         end
+
+#         if OrchestratorMessage.table_exists?() == false then
+#            CreateOrchestratorMessages.up
+#         end
+
+#         if MessageParameter.table_exists?() == false then
+#            CreateMessageParameters.up
+#         end 
+
+#         if RunningJob.table_exists?() == false then
+#            CreateRunningJobs.up
+#         end
+
+         @logger.info("[ORC_000] Created ORC tables")
+
+      rescue Exception => e
+         exit(99)
+      end
+ 
+   end
+ 
+   exit(0)
+
+end
+
+## ---------------------------------------------------------
+
+def usage
+   fullpathFile = File.expand_path(__FILE__)
+      
+   value = `#{"head -17 #{fullpathFile}"}`
+      
+   value.lines.drop(1).each{
+      |line|
+      len = line.length - 1
+      puts line[2, len]
+   }
+end
+
+## ---------------------------------------------------------
+
+
+## ===================================================================
+## Start of the main body
+main
+## End of the main body
+## ===================================================================

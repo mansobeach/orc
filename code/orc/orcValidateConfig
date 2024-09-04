@@ -1,0 +1,362 @@
+#!/usr/bin/env ruby
+
+# == Synopsis
+#
+# This is a command line tool that checks the validity of ORC configuration
+# files according to ORC's XSD schemas. This tool should be run everytime a 
+# configuration change is performed.
+#
+# -g flag:
+#
+# With the main ORC configuration file (orchestratorConfigFile.xml)
+# is validated using the schema orchestratorConfigFile.xsd
+#
+# -l flag:
+#
+# With this option the ORC Logs configuration file (orchestrator_log_config.xml) is
+# validated using the schema orchestrator_log_config.xsd
+#
+# -a flag:
+#
+# This is the all flag, which performs all the checks described before.
+#
+#
+# == Usage
+#  -a          Check all ORC configuration files
+#  -g          Check ORC's general configuration file orchestratorConfigFile.xml
+#  -l          Check the log configuration file orchestrator_log_config.xml
+#  -C          print the configuration directory location
+#  -X <dir>    eXtract the configuration into the specified directory
+#  -N <label>  label of the node to be appended into the configuration
+#  -E          Edit the associated configuration file
+#  -L          List the associated configuration file
+#  -h          shows this help
+#  -v          shows version number
+#    
+# 
+# == Author
+# DEIMOS-Space S.L.
+#
+# == Copyright
+# Copyright (c) 2020 ESA - DEIMOS Space S.L.
+#
+
+require 'getoptlong'
+
+require 'cuc/Log4rLoggerFactory'
+
+require 'orc/ORC_Environment'
+require 'orc/ReadOrchestratorConfig'
+
+##
+## MAIN script function
+##
+
+def main
+
+   include ORC
+
+   @isDebugMode      = false
+   @bIncoming        = false
+   @bEntities        = false
+   @bMail            = false
+   @bGeneral         = false
+   @bAll             = false
+   @bTrays           = false
+   @bLog             = false
+   @bShowVersion     = false
+   @bShowUsage       = false
+   @bOutgoing        = false
+   @bShowConfigDir   = false
+   @bEditConfig      = false
+   @bListConfig      = false
+   @targetDir        = ""
+   @nodeName         = ""
+
+   opts = GetoptLong.new(
+     ["--eXtract", "-X",         GetoptLong::REQUIRED_ARGUMENT],
+     ["--Node", "-N",            GetoptLong::REQUIRED_ARGUMENT],
+     ["--List", "-L",            GetoptLong::NO_ARGUMENT],
+     ["--Edit", "-E",            GetoptLong::NO_ARGUMENT],   
+     ["--all", "-a",             GetoptLong::NO_ARGUMENT],
+     ["--Config", "-C",          GetoptLong::NO_ARGUMENT],
+     ["--log", "-l",             GetoptLong::NO_ARGUMENT],     
+     ["--mail", "-m",            GetoptLong::NO_ARGUMENT],
+     ["--general", "-g",         GetoptLong::NO_ARGUMENT],
+     ["--usage", "-u",           GetoptLong::NO_ARGUMENT],
+     ["--version", "-v",         GetoptLong::NO_ARGUMENT],
+     ["--Debug", "-D",           GetoptLong::NO_ARGUMENT],
+     ["--help", "-h",            GetoptLong::NO_ARGUMENT]
+     )
+    
+   begin
+      opts.each do |opt, arg|
+         case opt
+            when "--eXtract"  then @targetDir         = arg.to_s
+            when "--Node"     then @nodeName          = arg.to_s
+            when "--Edit"     then @bEditConfig       = true
+            when "--List"     then @bListConfig       = true
+            when "--version"  then @bShowVersion      = true
+            when "--Config"   then @bShowConfigDir    = true
+            when "--Debug"    then @isDebugMode       = true
+            when "--help"     then @bShowUsage        = true
+            when "--incoming" then @bIncoming         = true
+            when "--outgoing" then @bOutgoing         = true
+            when "--entities" then @bEntities         = true
+            when "--log"      then @bLog              = true
+	         when "--mail"     then @bMail             = true
+	         when "--general"  then @bGeneral          = true
+            when "--all"      then @bAll              = true
+            when "--usage"    then @bShowUsage        = true
+         end
+      end
+   rescue Exception
+     exit(99)
+   end
+ 
+   if @bShowVersion == true then
+      print("\nESA - DEIMOS-Space S.L. ", File.basename($0), " Version: [#{ORC::VERSION}]", "\n\n")
+      hRecord = ORC::CHANGE_RECORD
+      hRecord.each_pair{|key, value|
+         puts "#{key} => #{value}"
+      }      
+      exit(0)
+   end
+
+   if @bShowUsage == true then
+      usage
+      exit(0)
+   end
+ 
+   if @targetDir == "" and @bListConfig == false and @bShowConfigDir == false and @bLog == false and @bOutgoing == false and @bIncoming == false and @bEntities == false and @bAll == false and @bMail == false and @bTrays == false and @bGeneral == false then
+      usage
+      exit(66)
+   end
+
+   ## Different to avoid checking the directories
+   if self.checkEnvironmentEssential == false then
+      puts
+      self.printEnvironmentError
+      puts
+      exit(66)
+   end
+
+   if self.checkToolDependencies == false then
+      exit(66)
+   end
+
+   ## ----------------------------------
+   ## initialize logger
+   @orcConfigDir       = ENV['ORC_CONFIG']
+
+   loggerFactory = CUC::Log4rLoggerFactory.new("CheckConf", "#{@orcConfigDir}/orchestrator_log_config.xml")
+   
+   if @isDebugMode then
+      loggerFactory.setDebugMode
+   end
+      
+   @logger = loggerFactory.getLogger
+   
+   if @logger == nil then
+      puts
+		puts "Could not initialize logging system !  :-("
+      puts "Check ORC logs configuration under \"#{@orcConfigDir}/orchestrator_log_config.xml\"" 
+		exit(99)
+   end
+
+   ## ----------------------------------
+
+   if @bShowConfigDir == true then
+      print self.getConfigDir
+		exit(0)
+   end
+
+   ## --------------------------------------------
+   ##
+   ## Extract the ORC configuration from the gem installation directory
+   if @targetDir != "" then
+      self.copy_installed_config(@targetDir, @nodeName)
+      exit(0)
+   end
+   ## --------------------------------------------
+
+
+   bReturn = true
+
+   # Check the log configuration file orchestrator_log_config.xml
+
+   if @bAll == true or @bLog == true then
+      if @isDebugMode == true then
+         @logger.debug("Checking orchestrator_log_config.xml")
+      end
+
+      if @bListConfig == true then
+         list("orchestrator_log_config")
+         # exit(0)
+      else
+
+         if @bEditConfig == true then
+            edit("orchestrator_log_config")
+         end
+
+         ret = validate("orchestrator_log_config")
+
+         if !bReturn or !ret then
+            bReturn = false
+         else
+            @logger.info("[ORC_001] Valid schema check for orchestrator_log_config.xml #{'1F4AA'.hex.chr('UTF-8')}")
+         end
+      end
+     
+   end
+
+   # Check ORC's general configuration files orchestratorConfigFile.xml
+   
+   if @bGeneral == true or @bAll == true then
+      
+      if @isDebugMode == true then
+         @logger.debug("Checking orchestratorConfigFile.xml")
+      end
+
+      if @bListConfig == true then
+         list("orchestratorConfigFile")
+         exit(0)
+      else
+
+         if @bEditConfig == true then
+            edit("orchestratorConfigFile")
+         end
+
+         ret = validate("orchestratorConfigFile")
+
+         if !bReturn or !ret then
+            bReturn = false
+         else
+            @logger.info("[ORC_001] Valid schema check for orchestratorConfigFile.xml #{'1F4AA'.hex.chr('UTF-8')}")
+         end
+
+      end
+
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      if @isDebugMode == true then
+         orcConf.setDebugMode
+      end
+
+      rules = orcConf.getPriorityRules
+
+      rules.each{|aRule|
+         
+         if @isDebugMode == true then
+            @logger.debug(aRule)
+         end
+
+         if aRule.fileType == nil then
+            @logger.error("[ORC_705] Rule ##{aRule.rank} with dataType #{aRule.dataType} is missing the DataProvider entry #{'1F4A9'.hex.chr('UTF-8')}")
+            bReturn = false
+         end
+
+         if aRule.dataType != nil then
+            procCmd  = orcConf.getExecutable(aRule.dataType)
+            
+            # puts aRule.dataType
+            # puts procCmd
+
+            if procCmd == nil then
+               @logger.error("[ORC_705] Rule ##{aRule.rank} with dataType #{aRule.dataType} is missing the ProcessingRule entry #{'1F4A9'.hex.chr('UTF-8')}")
+               bReturn = false
+            end
+         else
+            @logger.error("[ORC_705] Rule ##{aRule.rank} with dataType #{aRule.dataType} is incorrect #{'1F4A9'.hex.chr('UTF-8')}")
+            bReturn = false            
+         end
+
+         #@logger.info( aRule. )
+
+      }
+
+   end
+
+   ## Check directories also this time
+   ret = self.check_environment
+   
+   if !ret then
+      bReturn = false
+   end
+
+   if @bListConfig == true then
+      exit(0)
+   end
+
+   if bReturn == true then
+      @logger.info("[ORC_002] Configuration check is correct #{'1F57A'.hex.chr('UTF-8')}")
+      exit(0)
+   else
+      @logger.error("[ORC_600] Configuration check has failed #{'1F480'.hex.chr('UTF-8')}")
+      exit(99)
+   end
+   
+end
+
+## -------------------------------------------------------------
+## Check the given XML file using the corresponding XSD schema file
+
+def validate(fileName)
+   rootPath = File.join(File.dirname(File.expand_path(__FILE__)), "../../schemas")
+
+   cmd = "xmllint --schema #{rootPath}/#{fileName}.xsd #{ENV['ORC_CONFIG']}/#{fileName}.xml --noout 2>/dev/null"
+
+   ret = system(cmd)
+
+   if @isDebugMode == true then
+      @logger.debug("config: #{ENV['ORC_CONFIG']}/#{fileName}.xml")
+      @logger.debug(cmd)
+   end
+   
+   if ret == false then
+      @logger.error("Fail schema check for #{fileName}")
+   end
+   
+   return ret
+end
+## -------------------------------------------------------------
+
+def edit(fileName)
+   cmd = "vi #{ENV['ORC_CONFIG']}/#{fileName}.xml"
+   
+   if @isDebugMode == true and @logger != nil then
+      @logger.debug(cmd)
+   end
+
+   ret = system(cmd)
+
+   return true
+end
+
+## -------------------------------------------------------------
+
+def list(fileName)
+   puts "#{ENV['ORC_CONFIG']}/#{fileName}.xml"
+end
+
+## -------------------------------------------------------------
+
+# Print command line help
+def usage
+   fullpathFile = File.expand_path(__FILE__)
+   
+   value = `#{"head -40 #{fullpathFile}"}`
+      
+   value.lines.drop(1).each{
+      |line|
+      len = line.length - 1
+      puts line[2, len]
+   }
+end
+## -------------------------------------------------------------
+
+
+## ========================================================================
+## Start of the main body
+main
+## End of the main body
+## ========================================================================

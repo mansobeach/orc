@@ -1,0 +1,7 @@
+boa_app_s2boa@e2espm-inputhub: OPERATIONAL CONFIGURATION for S2BOA @ ESA CLOUD
+
+orctest@localhost: ORC unit tests
+
+NOT CLEAR USAGE
+s2boa@cloud_sboa
+borja@localhost

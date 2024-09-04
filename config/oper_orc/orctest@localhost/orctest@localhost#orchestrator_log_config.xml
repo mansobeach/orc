@@ -1,0 +1,41 @@
+  <log4r_config>
+ 
+   <pre_config>
+    <parameter name="mainLoggerName" value="ORC"/>
+   </pre_config>
+ 
+ <!-- ============================================= -->
+
+<outputter name="console"  level="DEBUG" >
+   <type>StdoutOutputter</type>
+	<formatter type="Log4r::PatternFormatter" pattern="[%5l] %d %c.#{moduleName} - %m">
+		<date_pattern>%Y-%m-%d %H:%M:%S</date_pattern>
+	</formatter>
+</outputter>
+
+<!-- ============================================= -->
+
+ 
+   <outputter name="orchestrator_log" level="DEBUG" >
+    <type>RollingFileOutputter</type>
+    <filename>/tmp/dec_orchestrator.log</filename>
+    <formatter type="PatternFormatter" pattern="[%5l] %d %c.#{moduleName} - %m">
+     <date_pattern>%Y-%m-%d %H:%M:%S</date_pattern>
+    </formatter>
+    <trunc>false</trunc>
+    <maxsize>10000000</maxsize>
+    <max_backups>4</max_backups>
+    <maxtime>2592000</maxtime>
+    
+   </outputter>
+
+ <!-- ============================================= -->
+
+   <logger name="ORC" level="DEBUG" trace="false">
+    <outputter>orchestrator_log</outputter>
+    <outputter>console</outputter>
+   </logger>
+ 
+ <!-- ============================================= -->
+ 
+  </log4r_config>

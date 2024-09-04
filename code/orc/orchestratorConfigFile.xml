@@ -1,0 +1,365 @@
+<OrchestratorConfiguration>
+   <List_of_DataProviders>
+   
+      <DataProvider isTriggerType='yes'>
+	      <DataType>HKTM0</DataType>
+	      <FileType>TLM_MIRA0_</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+      
+      <DataProvider isTriggerType='yes'>
+	      <DataType>SC_D</DataType>
+	      <FileType>MIR_SC_D0_</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+      
+      <DataProvider isTriggerType='yes'>
+	      <DataType>SC_F</DataType>
+	      <FileType>MIR_SC_F0_</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>GALAXY</DataType>
+	      <FileType>AUX_GALAXY</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>     
+            
+      <DataProvider isTriggerType='no'>
+	      <DataType>SORB</DataType>
+	      <FileType>MPL_ORBSCT</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>
+      
+      <DataProvider isTriggerType='no'>
+	      <DataType>PLM</DataType>
+	      <FileType>AUX_PLM___</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>
+      
+      <DataProvider isTriggerType='no'>
+	      <DataType>FAIL</DataType>
+	      <FileType>AUX_FAIL__</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>NRTMASK</DataType>
+	      <FileType>AUX_NRTMSK</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>NRTAPD</DataType>
+	      <FileType>AUX_APDNRT</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>BWGHT</DataType>
+	      <FileType>AUX_BWGHT_</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>PATT</DataType>
+	      <FileType>AUX_PATT__</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>DGG</DataType>
+	      <FileType>AUX_DGG___</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>LSMASK</DataType>
+	      <FileType>AUX_LSMASK</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>RFI</DataType>
+	      <FileType>AUX_RFI___</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>SPAR</DataType>
+	      <FileType>AUX_SPAR__</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>LCF</DataType>
+	      <FileType>AUX_LCF___</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>PMS</DataType>
+	      <FileType>AUX_PMS___</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>NIR</DataType>
+	      <FileType>AUX_NIR___</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>FLATT</DataType>
+	      <FileType>AUX_FLATT_</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>FTTD</DataType>
+	      <FileType>MIR_FTTD__</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>CORD0</DataType>
+	      <FileType>MIR_CORD0_</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>    
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>CRD1A</DataType>
+	      <FileType>MIR_CRSD1A</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>UNCD0</DataType>
+	      <FileType>MIR_UNCD0_</FileType>
+	      <Directory>[update]/data/adf/</Directory>
+      </DataProvider>            
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>HKTM_1A</DataType>
+	      <FileType>TLM_MIRA1A</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>JMAT</DataType>
+	      <FileType>MIR_JMATD_</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>GMAT</DataType>
+	      <FileType>MIR_GMATD_</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>NRT_L1C_D</DataType>
+	      <FileType>MIR_SCND1C</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>NRT_L1C_F</DataType>
+	      <FileType>MIR_SCNF1C</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>CNFNRT</DataType>
+	      <FileType>AUX_CNFNRT</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType='no'>
+	      <DataType>BFP</DataType>
+	      <FileType>AUX_BFP___</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>      
+      
+      <DataProvider isTriggerType='no'>
+	      <DataType>BSCAT</DataType>
+	      <FileType>AUX_BSCAT_</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>       
+      
+      <DataProvider isTriggerType='no'>
+	      <DataType>GALNIR</DataType>
+	      <FileType>AUX_GALNIR</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>         
+      
+      <DataProvider isTriggerType='no'>
+	      <DataType>MISP</DataType>
+	      <FileType>AUX_MISP__</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>       
+      
+      <DataProvider isTriggerType='no'>
+	      <DataType>MOONT</DataType>
+	      <FileType>AUX_MOONT_</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>        
+      
+      <DataProvider isTriggerType='no'>
+	      <DataType>SUNT</DataType>
+	      <FileType>AUX_SUNT__</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>    
+      
+      <DataProvider isTriggerType='no'>
+	      <DataType>AUX_VTEC_C</DataType>
+	      <FileType>VTEC_C</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>             
+      
+      <DataProvider isTriggerType='no'>
+	      <DataType>AUX_VTEC_P</DataType>
+	      <FileType>VTEC_P</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>                 
+      
+   </List_of_DataProviders>
+
+   <!-- ====================================================== -->
+
+   <List_of_PriorityRules>
+      <PriorityRule rank="1" class='SensingDelay' value="110000" unit='s' />
+      <PriorityRule rank="2" class='DataType' type='NRT_L1C_D' />
+      <PriorityRule rank="3" class='DataType' type='NRT_L1C_F' />
+      <PriorityRule rank="4" class='DataType' type='HKTM1A' />
+   </List_of_PriorityRules>
+
+   <!-- ====================================================== -->
+  
+   <List_of_ProcessingRules>
+   
+<!--
+      <ProcessingRule dataType='HKTM_1A' triggerType='HKTM0' coverage='SAME'>
+	      <executable>nrtp_L1A_HKTM.bin</executable>
+	      <List_of_Inputs>
+            <Input dataType='HKTM0'   coverage='SAME'      mandatory='true' />
+	         <Input dataType='SORB'     coverage='ALL'       mandatory='true' />
+            <Input dataType='APLM'     coverage='ALL'       mandatory='true' />
+            <Input dataType='FAIL'     coverage='ALL'       mandatory='true' />
+	      </List_of_Inputs>
+      </ProcessingRule>   
+-->
+      <ProcessingRule dataType='NRT_L1C_D' triggerType='SC_D' coverage='SAME'>
+	      <executable>nrtp_launcher.rb -p nrtp_L1C_Dual.bin %j %P</executable>
+	      <List_of_Inputs>
+            <Input dataType='SC_D'     coverage='SAME'      mandatory='true' />
+            <Input dataType='HKTM0'    coverage='INTERSECT' mandatory='true' />
+            <Input dataType='CORD0'    coverage='INTERSECT' mandatory='true' />
+            <Input dataType='UNCD0'    coverage='INTERSECT' mandatory='true' />
+            <Input dataType='FTTD'     coverage='LAST'      mandatory='true' />
+            <Input dataType='JMAT'     coverage='ALL'       mandatory='true' />
+            <Input dataType='GMAT'     coverage='ALL'       mandatory='true' />
+	    <Input dataType='SORB'     coverage='ALL'       mandatory='true' />
+            <Input dataType='BWGHT'    coverage='ALL'       mandatory='true' />
+            <Input dataType='FAIL'     coverage='ALL'       mandatory='true' />
+<!--
+            <Input dataType='FLATT'    coverage='ALL'       mandatory='true' />
+-->
+            <Input dataType='PATT'     coverage='ALL'       mandatory='true' />
+            <Input dataType='PLM'      coverage='ALL'       mandatory='true' />
+            <Input dataType='DGG'      coverage='ALL'       mandatory='true' />
+            <Input dataType='LSMASK'   coverage='ALL'       mandatory='true' />
+            <Input dataType='RFI'      coverage='ALL'       mandatory='true' />
+            <Input dataType='SPAR'     coverage='ALL'       mandatory='true' />
+            <Input dataType='LCF'      coverage='ALL'       mandatory='true' />
+            <Input dataType='PMS'      coverage='ALL'       mandatory='true' />
+            <Input dataType='NIR'      coverage='ALL'       mandatory='true' />
+            <Input dataType='NRTMASK'  coverage='ALL'       mandatory='true' />
+            <Input dataType='NRTAPD'   coverage='ALL'       mandatory='true' />
+            <Input dataType='CNFNRT'   coverage='ALL'       mandatory='true' />
+            <Input dataType='GALAXY'   coverage='ALL'       mandatory='true' />
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+
+      <ProcessingRule dataType='NRT_L1C_F' triggerType='SC_F' coverage='SAME'>
+	      <executable>nrtp_launcher.rb -p nrtp_L1C_Full.bin %j %P</executable>
+	      <List_of_Inputs>
+            <Input dataType='SC_F'     coverage='SAME'      mandatory='true' />
+            <Input dataType='HKTM0'    coverage='INTERSECT' mandatory='true' />
+            <Input dataType='CORD0'    coverage='ALL' mandatory='true' />
+            <Input dataType='UNCD0'    coverage='ALL' mandatory='true' />
+            <Input dataType='FTTD'     coverage='LAST'      mandatory='true' />
+            <Input dataType='JMAT'     coverage='ALL'       mandatory='true' />
+            <Input dataType='GMAT'     coverage='ALL'       mandatory='true' />
+	    <Input dataType='SORB'     coverage='ALL'       mandatory='true' />
+            <Input dataType='BWGHT'    coverage='ALL'       mandatory='true' />
+            <Input dataType='FAIL'     coverage='ALL'       mandatory='true' />
+<!--
+            <Input dataType='FLATT'    coverage='ALL'       mandatory='true' />
+-->
+            <Input dataType='PATT'     coverage='ALL'       mandatory='true' />
+            <Input dataType='PLM'      coverage='ALL'       mandatory='true' />
+            <Input dataType='DGG'      coverage='ALL'       mandatory='true' />
+            <Input dataType='LSMASK'   coverage='ALL'       mandatory='true' />
+            <Input dataType='RFI'      coverage='ALL'       mandatory='true' />
+            <Input dataType='SPAR'     coverage='ALL'       mandatory='true' />
+            <Input dataType='LCF'      coverage='ALL'       mandatory='true' />
+            <Input dataType='PMS'      coverage='ALL'       mandatory='true' />
+            <Input dataType='NIR'      coverage='ALL'       mandatory='true' />
+            <Input dataType='NRTMASK'  coverage='ALL'       mandatory='true' />
+            <Input dataType='NRTAPD'   coverage='ALL'       mandatory='true' />
+            <Input dataType='CNFNRT'   coverage='ALL'       mandatory='true' />
+            <Input dataType='GALAXY'   coverage='ALL'       mandatory='true' />
+	    <Input dataType='BFP'      coverage='ALL'       mandatory='true' />
+	    <Input dataType='BSCAT'    coverage='ALL'       mandatory='true' />
+	    <Input dataType='GALNIR'   coverage='ALL'       mandatory='true' />
+	    <Input dataType='MISP'     coverage='ALL'       mandatory='true' />
+	    <Input dataType='MOONT'    coverage='ALL'       mandatory='true' />
+	    <Input dataType='SUNT'     coverage='ALL'       mandatory='true' />
+	    <Input dataType='VTEC_C'   coverage='ALL'       mandatory='true' />
+	    <Input dataType='VTEC_P'   coverage='ALL'       mandatory='true' />	    
+	    
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+   <!--
+
+      <ProcessingRule dataType='NRT_CRD1A' triggerType='CORD0' coverage='SAME'>
+	      <executable>TBD</executable>
+	      <List_of_Inputs>
+            <Input dataType='CORD0'    coverage='SAME'      mandatory='true'  />
+            <Input dataType='CRD1A'    coverage='PREV'      mandatory='false' />
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType='NRT_CRD1A' triggerType='CORD0' coverage='SAME'>
+	      <executable>TBD</executable>
+	      <List_of_Inputs>
+            <Input dataType='CORD0'    coverage='SAME'      mandatory='true'  />
+            <Input dataType='CRD1A'    coverage='PREV'      mandatory='false' />
+	      </List_of_Inputs>
+      </ProcessingRule>   
+   -->
+   
+   </List_of_ProcessingRules>
+   
+   <List_of_Breakpoints>
+   <!--
+      <breakpoint key="Scenes_Vector_input" value="false" mandatory="false" valueType="boolean"/>
+      <breakpoint key="Scenes_Normalized" value="false" mandatory="false" valueType="boolean"/>
+      <breakpoint key="Scenes_Vector_output" value="false" mandatory="false" valueType="boolean"/>
+   -->
+   </List_of_Breakpoints>
+   
+   <Miscelanea>
+      <PollingDir>/nrt_data/exchange/fromPDPC</PollingDir>
+      <PollingFreq unit="s">30</PollingFreq>
+      <ProcWorkingDir>/nrt_data/workingDir/processorWd</ProcWorkingDir>
+      <SuccessDir>/nrt_data/exchange/toPDPC</SuccessDir>
+      <FailureDir>/nrt_data/workingDir/failure</FailureDir>
+      <BreakPointDir>/nrt_data/workingDir/breakpoints</BreakPointDir>
+      <TmpDir>/nrt_data/workingDir/tmp</TmpDir>
+   </Miscelanea>
+   
+</OrchestratorConfiguration>

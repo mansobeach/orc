@@ -1,0 +1,109 @@
+<OrchestratorConfiguration>
+
+<!-- https://jira.elecnor-deimos.com/browse/S2MPASUP-388 -->
+
+   <List_of_DataProviders>
+   
+      <DataProvider isTriggerType="yes">
+	      <DataType>NPPF</DataType>
+	      <FileType>*MPL__NPPF_*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>ORBPRE</DataType>
+	      <FileType>*MPL_ORBPRE*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>DECDHUSCREATION</DataType>
+	      <FileType>DEC_OPER_AVDHUS*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>DECDHUSSENSING</DataType>
+	      <FileType>DEC_OPER_OPDHUS*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="no">
+	      <DataType>UNKNOWN</DataType>
+	      <FileType>*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+ 
+      
+   </List_of_DataProviders>
+
+
+   <!-- ====================================================== -->
+
+   <List_of_PriorityRules>
+      <PriorityRule rank="1"     class="DataType" type="NPPF"                 sort="DESC" />
+      <PriorityRule rank="2"     class="DataType" type="ORBPRE"               sort="DESC" />
+      <PriorityRule rank="3"     class="DataType" type="DECDHUSCREATION"      sort="DESC" />
+      <PriorityRule rank="4"     class="DataType" type="DECDHUSSENSING"       sort="DESC" />
+   </List_of_PriorityRules>
+
+   <!-- ====================================================== -->
+  
+   <List_of_ProcessingRules>
+   
+      <ProcessingRule dataType="ORBPRE" triggerType="ORBPRE" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="NPPF" triggerType="NPPF" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="DECDHUSCREATION" triggerType="DECDHUSCREATION" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="DECDHUSSENSING" triggerType="DECDHUSSENSING" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+   </List_of_ProcessingRules>
+ 
+   
+   <List_of_Breakpoints>
+   <!--
+   -->
+   </List_of_Breakpoints>
+   
+   <Miscelanea>
+      <PollingDir>/inputs</PollingDir>
+      <PollingFreq unit="s">10</PollingFreq>
+      <ParallelIngestions>10</ParallelIngestions>
+      <SchedulingFreq unit="s">10</SchedulingFreq>
+      <ResourceManager>eboa_continue_triggering.py</ResourceManager>
+      <ProcWorkingDir>/minarc_root/processorWd</ProcWorkingDir>
+      <SuccessDir>/orc/success</SuccessDir>
+      <FailureDir>/orc/failure</FailureDir>
+      <BreakPointDir>/orc/breakpoints</BreakPointDir>
+      <TmpDir>/orc/tmp</TmpDir>
+   </Miscelanea>
+
+   <Inventory>
+      <Database_Adapter>postgresql</Database_Adapter>
+      <Database_Host></Database_Host>
+      <Database_Port>5432</Database_Port>      
+      <Database_Name>minarc_orc_db</Database_Name>
+      <Database_User>minarc_orc</Database_User>
+      <Database_Password>TOBEDEFINED</Database_Password>
+   </Inventory>
+
+   
+</OrchestratorConfiguration>

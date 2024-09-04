@@ -1,0 +1,870 @@
+#!/usr/bin/env ruby
+
+# == Synopsis
+#
+# This is the DEC / generic Orchestrator command line tool used to queue a trigger product for processing.
+#
+# 
+# -f flag:
+#
+# Mandatory flag. This option is used to specify the name of the file to be queued.  
+#
+#
+# -s flag:
+#
+# Mandatory flag. This flag is used to specify the status of the file in the queue.
+# Expected values are :
+# FUTURE
+# NRT
+# MIXED
+# OLD
+# OBSOLETE
+#
+#
+# -l flag:
+#
+# This option is used to list queued trigger products in the standard output.
+# Additional flags shall be specified to determine the list of desired trigger products.
+# -Q flag - Queued Trigger Products
+# -O flag - Obsolete Trigger Products
+# -S flag - Successful Trigger Products
+# -F flag - Failed Trigger Products 
+#
+#
+# -R flag:
+#
+# This flag is used with -l flag. It receives with a full_path_filename and it writes the list 
+# of files queued.
+#
+#
+# -d flag:
+#
+# This is the delete flag. It deletes from the processing queue the specified file.
+#
+#
+# --Bulk flag:
+#
+# This is the bulk flag to load pending files into the queue
+#  
+#
+#
+# == Usage
+# orcQueueInput -f <file-name> -s <file-status> | -l --Report <full_path_report_file>
+#     --file <file-name>         it specifies the name of the file to be queued
+#     --status                   it specifies the initial file-status of the file to be queued
+#                                possible status are  NRT | MIXED | OLD | OBSOLETE
+#     --start                    it specifies a starting sensing time to be archived with. Shortcut = -a
+#     --stop                     it specifies a stoping sensing time to be archived with. Shortcut = -b
+#
+#     --list                     it shows the trigger files list. See flags below
+#     --Queued                   it shows Queued Trigger Products
+#     --Obsolete                 it shows Obsolete Trigger Products
+#     --Success                  it shows Successful Trigger Products
+#     --Failed                   it shows Failed Trigger Products
+#     --Pending                  it shows Pending Trigger Products
+#     --dIscarded                it shows Discarded Trigger Products
+# 
+#     --Report  <reportname>     it writes the list of trigger files queued into a report
+#     --delete  <filename>       it deletes from the processing queue the specified file
+#     --help                     shows this help
+#     --usage                    shows the usage
+#     --Debug                    shows Debug info during the execution
+#     --version                  shows version number
+# 
+#
+# == Author
+# DEIMOS-Space S.L.
+#
+#
+# == Copyright
+# Copyright (c) 2008 ESA - DEIMOS Space S.L.
+#
+
+#########################################################################
+##
+## === SMOS NRTP Orchestrator
+##
+## Git: $Id: orcQueueInput,v 1.16 2009/03/24 17:33:27 decdev Exp $
+##
+#########################################################################
+
+require 'getoptlong'
+
+require 'cuc/Log4rLoggerFactory'
+
+require 'orc/ORC_Environment'
+
+
+
+# MAIN script function
+def main
+
+   include ORC
+
+   @bList                  = false
+
+   #Hardcoded values
+   @arrStatus = ["FUT", "NRT", "MIX", "OLD", "OBS", "UKN"]
+
+   # Data provided by the user
+   @filename               = ""
+   @reportfilename         = ""
+   @initialStatus          = "UKN"
+   @bDelete                = false
+   @isDebugMode            = false
+   @bObsolete              = false
+   @bQueued                = false
+   @bSuccess               = false
+   @bFailed                = false
+   @bTrigger               = false
+   @bPending               = false
+   @bDiscarded             = false
+   @bStart                 = false
+   @bStop                  = false
+   @pStart                 = ""
+   @pStop                  = ""
+   @bBulk                  = false
+
+   # Data generated or extracted from filename
+   @filetype               = ""
+   @sensing_start          = nil
+   @sensing_stop           = nil
+
+   # Other required Data
+   @detectionDate          = nil
+   @runtime_satus          = "UKN"
+   
+   @bShowVersion       = false
+   @bShowUsage         = false
+
+   
+   opts = GetoptLong.new(
+     ["--file",      "-f",    GetoptLong::REQUIRED_ARGUMENT],
+     ["--status",    "-s",    GetoptLong::REQUIRED_ARGUMENT],
+     ["--Report",    "-R",    GetoptLong::REQUIRED_ARGUMENT],
+     ["--delete",    "-d",    GetoptLong::REQUIRED_ARGUMENT],
+     ["--start",     "-a",    GetoptLong::REQUIRED_ARGUMENT],
+     ["--stop",      "-b",    GetoptLong::REQUIRED_ARGUMENT],
+     ["--Bulk",      "-B",    GetoptLong::NO_ARGUMENT],
+     ["--Queued",    "-Q",    GetoptLong::NO_ARGUMENT],
+     ["--Success",   "-S",    GetoptLong::NO_ARGUMENT],
+     ["--Failed",    "-F",    GetoptLong::NO_ARGUMENT],
+     ["--Obsolete",  "-O",    GetoptLong::NO_ARGUMENT],
+     ["--Trigger",   "-T",    GetoptLong::NO_ARGUMENT],
+     ["--Pending",   "-P",    GetoptLong::NO_ARGUMENT],
+     ["--dIscarded", "-I",    GetoptLong::NO_ARGUMENT], 
+     ["--Debug",     "-D",    GetoptLong::NO_ARGUMENT],
+     ["--list",      "-l",    GetoptLong::NO_ARGUMENT],
+     ["--usage",     "-u",    GetoptLong::NO_ARGUMENT],
+     ["--version",   "-v",    GetoptLong::NO_ARGUMENT],
+     ["--help",      "-h",    GetoptLong::NO_ARGUMENT]
+     )
+    
+   begin
+      opts.each do |opt, arg|
+         case opt
+            when "--help"           then            @bShowUsage            = true
+	         when "--usage"          then            @bShowUsage            = true
+            when "--Debug"          then            @isDebugMode           = true
+            when "--version"        then	          @bShowVersion          = true
+	         when "--file"           then            @filename              = File.basename(arg.to_s)
+                                                    @bIngest               = true
+            when "--delete"         then            @filename              = File.basename(arg.to_s)
+                                                    @bDelete               = true
+            when "--Report"         then            @reportfilename        =  arg.to_s
+            when "--start"          then            @pStart                =  arg.to_s
+                                                    @bStart                =  true  
+            when "--stop"           then            @pStop                 =  arg.to_s
+                                                    @bStop                 =  true
+            when "--list"           then            @bList                 =  true
+            when "--Bulk"           then            @bBulk                 =  true
+            when "--Obsolete"       then            @bObsolete             =  true
+            when "--Queued"         then            @bQueued               =  true
+            when "--Trigger"        then            @bTrigger              =  true
+            when "--Pending"        then            @bPending              =  true
+            when "--Success"        then            @bSuccess              =  true
+            when "--Failed"         then            @bFailed               =  true
+            when "--dIscarded"      then            @bDiscarded            =  true
+            when "--status"         then            @initialStatus         = (arg.to_s).upcase[0..2]
+         end
+      end
+   rescue Exception
+      exit(99)
+   end
+
+   if @bShowVersion == true then
+      print("\nESA - DEIMOS-Space S.L. ", File.basename($0), " Version: [#{ORC::VERSION}]", "\n")
+      hRecord = ORC::CHANGE_RECORD
+      hRecord.each_pair{|key, value|
+         puts "#{key} => #{value}"
+      }
+      exit(0)
+   end
+
+   if @bShowUsage == true then
+      usage
+      exit(0)
+   end
+
+   ######################## Coherency Checks & Data Extraction ########################
+   
+   if @bDelete == true and @bIngest == true then
+      usage
+      exit(99)
+   end
+
+   if @bDelete == true and @bList == true then
+      usage      
+      exit(99)
+   end
+
+   if @filename != "" and @bList == true
+      usage      
+      exit(99)
+   end
+
+   if @filename != "" and @bList == true then
+      usage
+      exit(99)
+   end
+
+   if @reportfilename != "" and @filename != "" then
+      usage      
+      exit(99)
+   end
+
+   if @reportfilename != "" and @bList == false and @bBulk == false then
+      usage      
+      exit(99)
+   end
+
+   if (@filename == "" or @filename.length > 100) and @bList == false and @reportfilename == "" and @bBulk == false then
+      usage
+      exit(99)
+   end
+
+
+   # -------------------------------------------------------
+
+## This verification will be added into the daemons to avoid repetition everytime
+
+#   if self.checkEnvironmentEssential == false then
+#      puts
+#      self.printEnvironmentError
+#      puts
+#      exit(99)
+#   end
+
+   self.load_config
+   # -------------------------------------------------------
+
+
+   ## ----------------------------------
+   ## initialize logger
+   
+   @orcConfigDir       = ENV['ORC_CONFIG']
+      
+   loggerFactory = CUC::Log4rLoggerFactory.new("MrQueue  " , "#{@orcConfigDir}/orchestrator_log_config.xml")
+   
+   if @isDebugMode then
+      loggerFactory.setDebugMode
+   end
+      
+   @logger = loggerFactory.getLogger
+   
+   if @logger == nil then
+      puts
+		puts "Could not initialize logging system !  :-("
+      puts "Check ORC logs configuration under \"#{@orcConfigDir}/orchestrator_log_config.xml\"" 
+		exit(99)
+   end
+
+   ## ----------------------------------
+
+
+   require 'orc/ORC_DataModel'
+   require 'orc/ReportQueuedFiles'
+
+
+   ## ----------------------------------------------
+   ## if just list the files queued
+   
+   if @bBulk == true then
+      bulkQueueing
+      exit(0)
+   end
+   ## ----------------------------------------------
+
+
+   ## ----------------------------------------------
+   # if just list the files queued
+   
+   if @bDelete == true then
+      deleteFile
+      exit(0)
+   end
+   ## ----------------------------------------------
+   # if just list the files queued
+   
+   if @bList == true and @reportfilename == "" then
+      list
+      exit(0)
+   end
+   # ----------------------------------------------
+   # Generate the report
+
+   if @bList == true and @reportfilename != "" then
+      generateReport
+      exit(0)
+   end
+   # ----------------------------------------------
+   
+   require 'orc/ReadOrchestratorConfig'
+
+   @ftReadConf          = ORC::ReadOrchestratorConfig.instance
+   if @isDebugMode == true then
+      @ftReadConf.setDebugMode
+   end
+
+   @archiveHandler      = @ftReadConf.getArchiveHandler
+
+   cmd            = "minArcFile -T #{@archiveHandler} -f #{@filename} -t"
+   if @isDebugMode == true then
+      @logger.debug(cmd)
+   end        
+   @filetype      = `#{cmd}`.chop
+   if @isDebugMode == true then
+      @logger.debug(@fileType)
+   end        
+
+   if @filetype == nil or @filetype == "" then
+      @logger.error("Could not identify the file-type for #{@filename}")
+      exit(99)
+   end
+
+   if @arrStatus.include?(@initialStatus) == false then
+      @logger.error("Status \"#{@initialStatus}\" is not a valid status :-(")
+      exit(99)
+   end
+
+   ## ------------------------------------------------------
+
+   
+   ## ------------------------------------------------------
+
+   ## -P (Pending) - Ingestion queues as pending
+
+   if @filename != "" and @bPending == true then     
+      row = nil
+      begin
+         row = Pending2QueueFile.where(filename: @filename)      
+      rescue Exception => e
+         @logger.error(e.to_s)
+         if @isDebugMode == true then
+            @logger.error(e.backtrace)
+         end
+         exit(127)
+      end
+
+      if row != nil then      
+         if row.to_a.length > 0 then
+            @logger.error("[ORC_XXX] #{row.to_a[0].filename} was already in pending queue :-|")
+            exit(127)
+         end
+      end
+   end
+  
+   ## ------------------------------------------------------  
+  
+   oldTrigger = TriggerProduct.where(filename: @filename)
+
+   if oldTrigger != nil then
+      if oldTrigger.to_a.length > 0 then 
+  
+         orcFile = OrchestratorQueue.where(trigger_product_id: oldTrigger.to_a[0].id)
+
+         if orcFile != nil and orcFile.to_a.length > 0 then
+            @logger.error("[ORC_603] #{oldTrigger.to_a[0].filename} was previously queued")
+            exit(127)
+         end
+      end
+   end
+
+
+   if (@bStart == true and @bStop == false) or (@bStart == false and @bStop == true) then
+      puts "-start and -stop options must go together"
+      exit(99)
+   end
+
+   cmd            = "minArcFile -T #{@archiveHandler} -f #{@filename} -s"
+   if @isDebugMode == true then
+      @logger.debug(cmd)
+   end 
+   tmpStart       = `#{cmd}`.chop         
+   if @isDebugMode == true then
+      @logger.debug(tmpStart)
+   end 
+
+   cmd            = "minArcFile -T #{@archiveHandler} -f #{@filename} -e"
+   if @isDebugMode == true then
+      @logger.debug(cmd)
+   end       
+   tmpStop        = `#{cmd}`.chop         
+   if @isDebugMode == true then
+      @logger.debug(tmpStop)
+   end 
+
+
+   
+   # If stop-date is EOM set a valid date
+   if tmpStop == "99999999T999999" then
+      tmpStop = "99991231T235959"
+   end
+
+   if @bStart == true and @bStop == true then
+      @sensing_start = @pStart  
+      @sensing_stop  = @pStop
+
+       # If stop-date is EOM set a valid date
+      if @sensing_stop > "99991231T235959" then
+         @sensing_stop = "99991231T235959"
+      end
+
+      #Date validation
+      if (@sensing_start.length != 15) or (@sensing_stop.length != 15) then
+         puts "invalid sensing date format. Format must be YYYYMMDDTHHmmSS"
+         exit (99)
+      else
+         if (@sensing_start < tmpStart) or (@sensing_start > tmpStop) then
+            puts "start time out of range"
+            exit(99)
+         end
+         if (@sensing_stop < @sensing_start) or (@sensing_stop > tmpStop) then
+            puts "stop time out of range"
+            exit(99)
+         end
+      end
+
+   else    
+
+      @sensing_start    = tmpStart
+      @sensing_stop     = tmpStop
+      
+      # If stop-date is EOM set a valid date
+      if @sensing_stop == "99999999T999999" then
+         @sensing_stop = "99991231T235959"
+      end
+
+   end
+   @detectionDate = Time.now()
+
+#   #Validation
+#   triggerFiles = TriggerProduct.find(:all, :conditions => {:filename => @filename})
+#
+#   triggerFiles.each { |trigFile|
+#               if trigFile.sensing_start.strftime("%Y%m%dT%H%M%S") == @sensing_start then
+#                  if trigFile.sensing_stop.strftime("%Y%m%dT%H%M%S") == @sensing_stop then
+#                     puts "Validation failed: File already exist with the exact start and stop time"
+#                     exit(99)
+#                  end
+#               end
+#               }
+
+
+
+   
+   ################################ Database insertion ################################
+   
+   TriggerProduct.transaction do
+      newQueuedProd  = nil
+      newProd        = nil
+   
+      if oldTrigger.to_a.length == 0 then
+   
+      # Trigger Product registration :
+      newProd = TriggerProduct.new(:filename => @filename,
+                                   :filetype => @filetype, 
+                                   :detection_date => @detectionDate,
+                                   :sensing_start  => @sensing_start,
+                                   :sensing_stop   => @sensing_stop,
+                                   :runtime_status => "UKN",
+                                   :initial_status => @initialStatus)
+
+         begin
+            newProd.save!
+         rescue Exception => e
+            puts
+            puts e.to_s
+            puts
+            puts " queue #{@filename} :-("
+            puts
+            exit(99)
+         end
+      
+         else
+            newProd = oldTrigger.to_a[0]
+         end
+
+#         puts Pending2QueueFile.column_names
+#         puts "xxx"
+#         puts Pending2QueueFile.columns
+#         puts "---"
+
+         if @bPending == true
+            newQueuedProd = Pending2QueueFile.new
+            newQueuedProd.filename           = @filename
+            newQueuedProd.filetype           = @filetype
+            newQueuedProd.detection_date     = Time.now
+            newQueuedProd.trigger_products   = newProd
+         else
+            newQueuedProd = OrchestratorQueue.new
+            newQueuedProd.filename           = @filename
+            newQueuedProd.filetype           = @filetype
+            newQueuedProd.queue_date         = Time.now
+            newQueuedProd.trigger_products   = newProd
+         end
+
+         begin
+            newQueuedProd.save!
+         rescue Exception => e
+      
+               puts e
+               if @isDebugMode == true then
+                  puts
+                  puts e.backtrace
+                  puts
+               end
+
+      
+            #unregistering the trigger product
+            newProd.destroy
+
+            puts
+            puts "Unable to queue #{@filename} :-("
+            puts "The file will be removed from the trigger products list..."
+            puts
+            exit(99)
+         end
+
+      if @bPending == false then
+         Pending2QueueFile.where(filename: @filename).destroy_all
+         if @isDebugMode == true then
+            @logger.debug("#{@filename} has been successfully queued #{'1F4E1'.hex.chr('UTF-8')}")
+         end
+      else
+#         puts
+#         puts "#{@filename} is classified as pending :-)" 
+#         puts      
+      end
+
+   end
+end
+
+## ---------------------------------------------------------
+
+## It provides the list of trigger-files to be processed [queued]
+def list
+
+   triggerFiles   = TriggerProduct.all.to_a
+
+   if @bQueued == true then
+      puts
+      print "QUEUE_DATE-------FILENAME-------------------------------------------------------FILETYPE----START------------STOP--------------", "\n"
+
+      # listFiles = OrchestratorQueue::getQueuedFiles
+
+      listFiles = OrchestratorQueue.all
+
+      listFiles.each{|queueFile|         
+      
+         triggerFile = TriggerProduct.where(:id => queueFile.trigger_product_id).to_a[0]
+         
+         print queueFile.queue_date.strftime("%Y%m%dT%H%M%S ").ljust(17),
+               queueFile.filename.slice(0..59).ljust(63),
+               queueFile.filetype.slice(0..10).ljust(12),
+               triggerFile.sensing_start.strftime("%Y%m%dT%H%M%S ").ljust(17), 
+               triggerFile.sensing_stop.strftime("%Y%m%dT%H%M%S ").ljust(18),
+               "\n"
+      }
+      puts
+   end
+
+   if @bObsolete == true then
+      print "OBSOLATE_DATE-----ID---FILENAME-------------------------------------------------------START------------STOP-----------", "\n"
+
+      obsoleteFiles  = ObsoleteTriggerProduct.all
+
+      triggerFiles.each{|triggerFile|
+         obsoleteFiles.each{|obsFile|
+            if triggerFile.id == obsFile.trigger_product_id then
+               if obsFile.obsolete_date != nil then
+                  print obsFile.obsolete_date.strftime("%Y%m%dT%H%M%S ").ljust(17)
+               else
+                  print "                "
+               end
+               print triggerFile.id.to_s.center(4).ljust(6),
+                     triggerFile.filename.slice(0..59).ljust(63),
+                     triggerFile.sensing_start.strftime("%Y%m%dT%H%M%S ").ljust(17), 
+                     triggerFile.sensing_stop.strftime("%Y%m%dT%H%M%S "), "\n"                    
+            end
+         }         
+      }
+      puts
+   end
+
+   if @bSuccess == true then
+      print "SUCCESS_DATE-----DETECTION_DATE----ID---FILENAME-------------------------------------------------------START------------STOP--------------INI---RUN", "\n"
+
+
+      successFiles  = SuccessfulTriggerProduct.order(success_date: :asc).all # find(:all, :order => "success_date")
+      successFiles.each{|sucFile|
+         triggerFiles.each{|triggerFile|
+            if triggerFile.id == sucFile.trigger_product_id then
+               if sucFile.success_date != nil then
+                  print sucFile.success_date.strftime("%Y%m%dT%H%M%S ").ljust(17)
+               else
+                  print "                "
+               end
+               print triggerFile.detection_date.strftime("%Y%m%dT%H%M%S ").ljust(17)
+               print triggerFile.id.to_s.center(4).ljust(6),
+                     triggerFile.filename.slice(0..59).ljust(63),
+                     triggerFile.sensing_start.strftime("%Y%m%dT%H%M%S ").ljust(17), 
+                     triggerFile.sensing_stop.strftime("%Y%m%dT%H%M%S ").ljust(18),  
+                     triggerFile.initial_status.ljust(6),
+                     triggerFile.runtime_status, "\n"  
+            end
+         }         
+      }
+      puts
+   end
+
+   if @bFailed == true then
+      print "FAILURE_DATE------ID---FILENAME-------------------------------------------------------START------------STOP--------------INI---RUN", "\n"
+
+      failureFiles  = FailingTriggerProduct.order(failure_date: :asc).all
+                                    
+      failureFiles.each{|faiFile|
+         triggerFiles.each{|triggerFile|
+            if triggerFile.id == faiFile.trigger_product_id then
+               if faiFile.failure_date != nil then
+                  print faiFile.failure_date.strftime("%Y%m%dT%H%M%S ").ljust(17)
+               else
+                  print "                 "
+               end
+               print triggerFile.id.to_s.center(4).ljust(6),
+                     triggerFile.filename.slice(0..59).ljust(63),
+                     triggerFile.sensing_start.strftime("%Y%m%dT%H%M%S ").ljust(17), 
+                     triggerFile.sensing_stop.strftime("%Y%m%dT%H%M%S ").ljust(18),  
+                     triggerFile.initial_status.ljust(6),
+                     triggerFile.runtime_status, "\n"      
+            end
+         }         
+      }
+      puts
+   end
+
+
+   if @bDiscarded == true then
+      print "DISCARDED_DATE----ID---FILENAME-------------------------------------------------------START------------STOP--------------INI---RUN", "\n"
+
+      discardedFiles  = DiscardedTriggerProduct.order(discarded_date: :asc).all
+                                    
+      discardedFiles.each{|disFile|
+         triggerFiles.each{|triggerFile|
+            if triggerFile.id == disFile.trigger_product_id then
+               if disFile.discarded_date != nil then
+                  print disFile.discarded_date.strftime("%Y%m%dT%H%M%S ").ljust(17)
+               else
+                  print "                 "
+               end
+               print triggerFile.id.to_s.center(4).ljust(6),
+                     triggerFile.filename.slice(0..59).ljust(63),
+                     triggerFile.sensing_start.strftime("%Y%m%dT%H%M%S ").ljust(17), 
+                     triggerFile.sensing_stop.strftime("%Y%m%dT%H%M%S ").ljust(18),  
+                     triggerFile.initial_status.ljust(6),
+                     triggerFile.runtime_status, "\n"      
+            end
+         }         
+      }
+      puts
+   end
+
+
+   if @bTrigger == true then
+      print "DETECTION_DATE----ID---FILENAME-------------------------------------------------------START------------STOP--------------INI---RUN", "\n"
+
+      triggerFiles.each{|triggerFile|            
+         if triggerFile.detection_date != nil then
+            print triggerFile.detection_date.strftime("%Y%m%dT%H%M%S ").ljust(17)
+         else
+            print "                "
+         end
+         print triggerFile.id.to_s.center(4).ljust(6),
+                     triggerFile.filename.slice(0..59).ljust(63),
+                     triggerFile.sensing_start.strftime("%Y%m%dT%H%M%S ").ljust(17), 
+                     triggerFile.sensing_stop.strftime("%Y%m%dT%H%M%S ").ljust(18),  
+                     triggerFile.initial_status.ljust(6),
+                     triggerFile.runtime_status, "\n" 
+      }
+      puts
+   end
+
+   if @bPending == true then
+      print "PENDING_DATE-----FILENAME------------------------------------------------------FILETYPE--", "\n"
+ 
+      pendingFiles = Pending2QueueFile.order(detection_date: :asc).all
+      pendingFiles.each{|penFile|
+         print penFile.detection_date.strftime("%Y%m%dT%H%M%S ").ljust(17),
+              penFile.filename.slice(0..59).ljust(60, ' '), "  ", penFile.filetype.slice(0..10), "\n"        
+      }
+      puts
+   end
+
+end
+#-------------------------------------------------------------
+
+# It provides the list of trigger-files to be processed [queued]
+def generateReport
+
+   listFiles      = OrchestratorQueue::getQueuedFiles
+
+   writer = ORC::ReportQueuedFiles.new(@reportfilename)
+
+   writer.write(listFiles)
+
+end
+## -------------------------------------------------------------
+
+def deleteFile
+   theFilename = File.basename(@filename)
+
+   trgFile = TriggerProduct.find_by_filename(theFilename)
+
+   if trgFile == nil then
+      puts
+      puts "#{theFilename} is not registered in the orchestrator"
+      return
+   end
+
+   orcFile = OrchestratorQueue.find_by_trigger_product_id(trgFile.id)
+
+   if orcFile != nil then
+      begin
+         orcFile.destroy
+         puts "#{theFilename} removed from Orchestrator Queue"
+      rescue Exception => e
+         puts e.to_s
+         @logger.error("Could not delete #{theFilename} from Orchestrator Queue #{'1F480'.hex.chr('UTF-8')}")
+      end
+   end
+
+   orcFile = FailingTriggerProduct.find_by_trigger_product_id(trgFile.id)
+
+   if orcFile != nil then
+      begin
+         orcFile.destroy
+         puts "#{theFilename} removed from Orchestrator Failed Triggers"
+      rescue Exception => e
+         @logger.error("Could not delete #{theFilename} from Orchestrator Failed Triggers #{'1F480'.hex.chr('UTF-8')}")
+      end
+   end
+
+   orcFile = SuccessfulTriggerProduct.find_by_trigger_product_id(trgFile.id)
+
+   if orcFile != nil then
+      begin
+         orcFile.destroy
+         puts "#{theFilename} removed from Orchestrator Successful Triggers"
+      rescue Exception => e
+         @logger.error("Could not delete #{theFilename} from Orchestrator Successful Triggers #{'1F480'.hex.chr('UTF-8')}")
+      end
+   end
+
+   orcFile = ObsoleteTriggerProduct.find_by_trigger_product_id(trgFile.id)
+
+   if orcFile != nil then
+      begin
+         orcFile.destroy
+         puts "#{theFilename} removed from Orchestrator Obsolete Triggers"
+      rescue Exception => e
+         @logger.error("Could not delete #{theFilename} from Orchestrator Obsolete Triggers #{'1F480'.hex.chr('UTF-8')}")
+      end
+   end
+
+   orcFile = TriggerProduct.find_by_id(trgFile.id)
+
+   if orcFile != nil then
+      begin
+         orcFile.destroy
+         if @isDebugMode == true then
+            @logger.debug("#{theFilename} removed from Orchestrator TriggerProducts table")
+         end
+      rescue Exception => e
+         @logger.error("[ORC_XXX] #{theFilename} could not be deleted from TriggerProducts table")
+      end
+   end
+
+   @logger.info("[ORC_214] #{@filename} removed from queue(s)")
+
+end
+## -------------------------------------------------------------
+
+## -------------------------------------------------------------
+
+def bulkQueueing
+   puts "bulk mode"
+   
+   require 'activerecord-import'
+   
+   @arrPendingFiles = Pending2QueueFile.all     
+
+   if @arrPendingFiles.empty? == true then
+      msg = "No new input files are pending to be queued"
+      puts msg 
+      return
+   end
+  
+   arr = Array.new
+  
+   @arrPendingFiles.each{|file|
+      arr << OrchestratorQueue.new( trigger_product_id: file.trigger_product_id, \
+                                    filename: file.filename, \
+                                    filetype: file.filetype, \
+                                    queue_date: Time.now)
+   }
+
+   OrchestratorQueue.transaction do
+      OrchestratorQueue.import arr, validate: false
+      Pending2QueueFile.destroy_all
+   end
+
+
+#
+#   OrchestratorQueue.transaction do
+#      OrchestratorQueue.import [:trigger_product_id], arrIds, validate: false
+#      Pending2QueueFile.destroy_all
+#   end
+   
+end
+## -------------------------------------------------------------
+
+def usage
+   fullpathFile = File.expand_path(__FILE__)
+      
+   value = `#{"head -81 #{fullpathFile}"}`
+      
+   value.lines.drop(1).each{
+      |line|
+      len = line.length - 1
+      puts line[2, len]
+   }
+end
+
+## -------------------------------------------------------------
+
+
+## ===============================================================================
+## Start of the main body
+main
+## End of the main body
+## ===============================================================================

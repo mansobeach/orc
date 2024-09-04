@@ -1,0 +1,68 @@
+Modules <9 characters>
+- Orchtratr
+- Ingestion
+- Scheduler
+- manageDB
+- MrQueue  
+
+- ArcStore 
+- Retrieve  
+- ArcPurge 
+- ArcServer
+
+INFO:
+
+ORC_000: Configuration is correct
+
+ORC_000: 
+ORC_005: Starting Orchestrator
+ORC_006: Starting orcIngester
+ORC_007: Starting orcScheduler
+ORC_010: Started Orchestrator
+ORC_031: Status => No daemon is running for the Ingestion
+ORC_032: Status => Ingestion is running with $PID
+ORC_033: Status => No daemon is running for the Scheduler
+ORC_034: Status => Scheduler is running with $PID
+ORC_050: Stopping Orchestrator gracefully
+ORC_060: Stopped Orchestrator
+
+Ingestion:
+
+ORC_100: $file found
+ORC_110: $file archived
+ORC_115: $file queued in pending
+ORC_120: Ingestion loop completed
+ORC_125: SIGUSR1 sent to Scheduler 
+
+Scheduling:
+
+ORC_200: Load queue for dispatch
+ORC_205: Dispatching jobs
+ORC_210: Queue pending triggers into dispatch
+ORC_215: $file queued for dispatch
+ORC_220: Schedule loop completed
+ORC_225: Waiting for new inputs
+ORC_230: No resources available / queue length
+ORC_240: Triggering Job $file 
+ORC_250: $file job successful 
+
+WARNING:
+ORC_301: Discarded $file => (files starting with "." or "_" )
+ORC_303: $file polled previously processed
+ORC_304: $file polled is already in the archive
+ORC_305: $file $datatype is not trigger type
+ORC_310: Scheduler is already running
+ORC_311: Ingester is already running
+ORC_314: Stop -> Ingester was not running 
+
+
+ERROR:
+ORC_600: Configuration check has failed
+ORC_601: $file pending queue failed
+ORC_602: $file $type filetype not configured
+ORC_603: $file was previously queued
+ORC_611: $file archiving failed (e.g. unrecognized file)
+ORC_612: $file retrieval failed
+ORC_666: failed job
+ORC_705: ORC miss-configuration
+ORC_999: FATAL ERROR

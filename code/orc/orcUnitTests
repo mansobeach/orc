@@ -1,0 +1,1973 @@
+#!/usr/bin/env ruby
+
+#########################################################################
+##
+## === Ruby source for #ORC_TestCases class
+##
+## === Written by DEIMOS Space S.L. (bolf)
+##
+## === Orchestrator Component
+## 
+## module ORC
+##
+#########################################################################
+
+require 'rubygems'
+require 'test/unit'
+require 'fileutils'
+
+require 'cuc/DirUtils'
+require 'cuc/Log4rLoggerFactory'
+
+require 'orc/ORC_Environment'
+require 'arc/MINARC_Environment'
+
+## Preconditions:
+#
+## 0.1 - rake -f build_minarc.rake minarc:install[orctest,localhost]
+## orc configuration for orcUnitTests orctest@localhost
+## 0.2 - rake -f build_orc.rake orc:install
+#
+# 1 - setup 
+# 1.1 - load_config_development
+# 1.2 - inventory database is created
+
+# 2 - teardown
+# 2.1 - purge archive
+# 2.2 - inventory database is destroyed
+
+##  0  - test_orcValidateConfig
+##  1  - test_commandline_helpers
+##  2  - test_parsers
+##  3  - test_states
+##  4  - test_orcValidateConfig
+##  5  - test_command_orcIngester
+##  6  - test_command_orcScheduler
+##  7  - test_command_orcBolg
+##  8  - test_allatonce
+##  9  - test_contingency_inventory
+## 10  - test_resiliency
+## 11  - test_train_slow
+## 12  - test_reprocessing
+
+# Select a single test of the suite
+
+# ruby orcUnitTests -n test_my_method 
+
+
+class ORCTestCase < Test::Unit::TestCase
+
+   include CUC::DirUtils
+   include ORC
+
+   
+   # Order of the test cases execution according to defintion within code
+   self.test_order = :defined
+   
+   @my_argv = ARGV.dup
+   
+   # --------------------------------------------------------
+   
+   Test::Unit.at_start do
+      
+      system("clear")
+        
+      puts
+      puts "======================================"
+      puts "ORC Unit Test Cases"
+      puts
+      puts
+      puts "DO NOT EXECUTE IN THE PRODUCTION ENVIRONMENT !!!!!"
+      puts
+      puts "or with operational data in the archive"
+      puts
+      puts "THINK CAREFULLY !!! "
+      puts
+      puts "do you want to continue Y/n" 
+      puts
+      puts
+      
+      bBatchmode     = false
+      @@execEnvFile  = ""
+      
+            
+      @my_argv.each{|arg|
+      
+         if arg.include?(".env") == true then
+            @@execEnvFile = arg.to_s
+         end
+      
+         if arg == "batchmode" then
+            puts "batch mode execution on"
+            bBatchmode = true
+         end
+      }
+      
+      if bBatchmode == false then
+         c = STDIN.getc   
+         if c != 'Y' then
+            exit(99)
+         end
+      end
+      
+      
+=begin
+      puts
+      puts
+      puts "THINK IT TWICE  !!! "
+      puts
+      puts "do you want to continue Y/n" 
+      puts
+      puts
+      
+      c = STDIN.getc
+            
+      
+      if c != 'Y' then
+         exit(99)
+      end
+
+=end      
+      
+#      ret = `which`
+#      
+#      puts $?.exitstatus
+#      
+#      if $?.exitstatus != 1 then
+#         puts "which command line tool is missing"
+#         puts
+#         exit(99)
+#      end
+#      
+      @@conf = ORC_Environment.new
+      
+      if @@execEnvFile != nil and @@execEnvFile != "" then
+         ret = @@conf.wrapper_load_environment(@@execEnvFile)
+         if ret == false then
+            puts "Aborting test !"
+            exit(99)
+         end
+      else     
+         @@conf.wrapper_load_config
+      end
+
+      puts "--------------------------"     
+      @@conf.wrapper_print_environment
+      puts "--------------------------"
+     
+     
+#      # ENV['ORC_DATABASE_HOST'] = "localhost_non_existing"
+#      ENV['ORC_DATABASE_HOST'] = "localhost"     
+     
+      puts
+      puts "--------------------------"       
+      @@conf.wrapper_print_environment
+      puts "--------------------------"
+      puts
+     
+            
+      @@conf.wrapper_createEnvironmentDirs
+
+      if @@conf.wrapper_check_environment == false then
+         puts "orchestrator environment not suited for ORC unit tests"
+         puts
+         exit(99)
+      end
+   
+      orcConfig = ENV['ORC_CONFIG']
+      
+      @@conf.unset_config
+
+      ENV['ORC_CONFIG'] = orcConfig
+   
+      puts "--------------------------"     
+      @@conf.wrapper_print_environment
+      puts "--------------------------"
+
+      
+      require 'orc/ReadOrchestratorConfig'
+      
+      @@pollingDir = ORC::ReadOrchestratorConfig.instance.getPollingDir
+      
+      @@conf = MINARC_Environment.new
+
+      ## minArc configuration is now shipped within the gem
+      ## and it is used the one installed
+#      @@conf.wrapper_load_config_development
+#
+#      if @@execEnvFile == nil or @@execEnvFile == "" then
+#         @@conf.wrapper_load_environment_test
+#      end
+
+      puts
+      puts "Creating minARC directories"
+
+      @@conf.wrapper_load_config
+
+      @@conf.wrapper_createEnvironmentDirs
+      
+      if @@conf.wrapper_check_environment == false then
+         puts "minArc environment not suited for ORC unit tests"
+         puts
+         exit(99)
+      else
+         puts      
+         @@conf.wrapper_print_environment
+         puts
+      end
+      
+      
+      
+      system("minArcDB -c")
+      
+      
+      @@arrInputFiles_with_error = [ \
+                           "bizarre_file.sht", \
+                           "EDR_OPER_SER_SR1_OA_PDMC_20210111T060002_V20210111T052640_20210111T054055", \
+                           "S2__OPER_SRA_EDRS_A_PDMC_20180719T030000_V20180719T030000_20180831T233257.EOF", \
+                           "S2B_OPER_REP_OPDPC__SGS__20180721T061746_V20180721T061746_20180721T061746.EOF", \
+                           "S2B_OPER_REP_OPDPC__MPC__20180721T061746_V20180721T061746_20180721T061746.EOF", \
+                           "S2__OPER_REP_ARC____EPA__20180721T110140_V20180721T085229_20180721T085414.EOF", \
+                           "S2__OPER_REP_ARC____MPC__20180721T110140_V20180721T085229_20180721T085414.EOF", \
+                           "S2__OPER_REP_OPAI___EPA__20180721T130012_V20180721T010002_20180721T130001.EOF", \
+                           "S2__OPER_REP_OPAI___MPC__20180721T130012_V20180721T010002_20180721T130001.EOF", \
+                           "S2A_OPER_MPL__NPPF__20180720T110000_20180806T140000_0001.TGZ", \
+                           "S2__OPER_REP_OPLTAS_UPA__20180722T060002_V20180721T030002_20180722T060002.EOF", \
+                           "S2A_OPER_MPL__NPPF__20180820T110000_20180906T140000_0001.TGZ", \
+                           "S2A_OPER_MPL__NPPF__20190420T110000_20190426T140000_0001.TGZ", \
+                           "S2A_OPER_MPL__NPPF__20170820T110000_20170906T140000_0001.TGZ", \
+                           "S2A_OPER_MPL__NPPF__20180920T110000_20180926T140000_0001.TGZ", \
+                           "S2A_OPER_MPL__NPPF__20190520T110000_20190526T140000_0001.TGZ", \
+                           "S2A_OPER_MPL_ORBPRE_20180720T030221_20180730T030221_0001.EOF", \
+                           "S2A_OPER_REP_PASS_E_EDRS_20180720T235700_V20180720T234817_20180720T235645.EOF", \
+                           "S2A_OPER_REP_STNACQ_SGS__20180724T123414_V20180724T120243_20180724T121539.EOF", \
+                           "S2A_OPER_MPL_SPMPS__PDMC_20180719T090005_V20180720T090000_20180726T090000.EOF", \
+                           "S2A_OPER_MPL_FSSGS__PDMC_20180719T090008_V20180720T090000_20180726T090000.EOF", \
+                           "S2__OPER_REP_OPLTA__EPA__20180721T130015_V20180721T010002_20180721T130001.EOF", \
+                           "S2__OPER_REP_OPLTAS_UPA__20190522T060002_V20190521T030002_20190522T060002.EOF", \
+                           "S2__OPER_GIP_PROBA2_MPC__20190502T000212_V20190506T004000_21000101T000000_B00.TGZ", \
+                           "S2A_OPER_GIP_PROBAS_MPC__20190307T000207_V20190311T000000_21000101T000000_B00.TGZ", \
+                           "S2__OPER_REP_OPDAM1_PDMC_20180721T110501_V20180721T085229_20180721T085229.EOF" \
+                           ]
+
+      @@troubleMakers = [ \
+                           "EDR_OPER_SER_SR1_OA_PDMC_20210111T060002_V20210111T052640_20210111T054055", \
+                           "S2B_OPER_REP_OPDPC__SGS__20180721T061746_V20180721T061746_20180721T061746.EOF", \
+                           "EDR_OPER_SER_SR1_OA_PDMC_20210222T090000_V20210111T052640_20210111T054055", \
+                           "S2B_OPER_REP_OPDPC__MPC__20180721T061746_V20180721T061746_20180721T061746.EOF", \
+                           "S2B_OPER_REP_OPDPC__SGS__20210121T235959_V20200721T061746_20180721T061746.EOF" \
+                           ]
+
+      @@arrInputFiles = [ \
+                           "S2A_OPER_REP__SUP___20201128T134025_20201128T134611_0001.EOF", \
+                           "S2__OPER_REP_OPPRIP_PDMC_20210227T060003_V20210226T235001_20210227T055001.EOF", \
+                           "S2__OPER_REP_WEPRIP_PDMC_20210325T180000_V20210317T030000_20210324T025959.TGZ", \
+                           "S2A_OPER_TLM__REQ_B_20210209T000000_20210210T000000_0001.TGZ", \
+                           "S2__OPER_SRA_EDRS_A_PDMC_20180719T030000_V20180719T030000_20180831T233257.EOF", \
+                           "S2B_OPER_REP_OPDPC__SGS__20180721T061746_V20180721T061746_20180721T061746.EOF", \
+                           "S2B_OPER_REP_OPDPC__MPC__20180721T061746_V20180721T061746_20180721T061746.EOF", \
+                           "S2__OPER_REP_ARC____EPA__20180721T110140_V20180721T085229_20180721T085414.EOF", \
+                           "S2__OPER_REP_ARC____MPC__20180721T110140_V20180721T085229_20180721T085414.EOF", \
+                           "S2__OPER_REP_OPAI___EPA__20180721T130012_V20180721T010002_20180721T130001.EOF", \
+                           "S2__OPER_REP_OPAI___MPC__20180721T130012_V20180721T010002_20180721T130001.EOF", \
+                           "S2A_OPER_MPL__NPPF__20180720T110000_20180806T140000_0001.TGZ", \
+                           "S2__OPER_REP_OPLTAS_UPA__20180722T060002_V20180721T030002_20180722T060002.EOF", \
+                           "S2A_OPER_MPL__NPPF__20180820T110000_20180906T140000_0001.TGZ", \
+                           "S2A_OPER_MPL__NPPF__20190420T110000_20190426T140000_0001.TGZ", \
+                           "S2A_OPER_MPL__NPPF__20170820T110000_20170906T140000_0001.TGZ", \
+                           "S2A_OPER_MPL__NPPF__20180920T110000_20180926T140000_0001.TGZ", \
+                           "S2A_OPER_MPL__NPPF__20190520T110000_20190526T140000_0001.TGZ", \
+                           "S2A_OPER_MPL_ORBPRE_20180720T030221_20180730T030221_0001.EOF", \
+                           "S2A_OPER_REP_PASS_E_EDRS_20180720T235700_V20180720T234817_20180720T235645.EOF", \
+                           "S2A_OPER_REP_STNACQ_SGS__20180724T123414_V20180724T120243_20180724T121539.EOF", \
+                           "S2A_OPER_MPL_SPMPS__PDMC_20180719T090005_V20180720T090000_20180726T090000.EOF", \
+                           "S2A_OPER_MPL_FSSGS__PDMC_20180719T090008_V20180720T090000_20180726T090000.EOF", \
+                           "S2__OPER_REP_OPLTA__EPA__20180721T130015_V20180721T010002_20180721T130001.EOF", \
+                           "S2__OPER_REP_OPLTAS_UPA__20190522T060002_V20190521T030002_20190522T060002.EOF", \
+                           "S2__OPER_GIP_PROBA2_MPC__20190502T000212_V20190506T004000_21000101T000000_B00.TGZ", \
+                           "S2A_OPER_GIP_PROBAS_MPC__20190307T000207_V20190311T000000_21000101T000000_B00.TGZ", \
+                           "S2__OPER_REP_OPDAM1_PDMC_20180721T110501_V20180721T085229_20180721T085229.EOF" \
+                           ]
+                            
+           @@arrInputFiles2 = [ \
+                           "S2__OPER_SRA_EDRS_A_PDMC_20180719T030000_V20180719T030000_20180831T233257.EOF", \
+                           "S2__OPER_REP_OPDAM1_PDMC_20180721T110501_V20180721T085229_20180721T085229.EOF" \
+                           ]
+        
+           @orcConfigDir = ENV['ORC_CONFIG']
+      require 'orc/ReadOrchestratorConfig'
+ 
+
+      ## ----------------------------------
+      ## initialize logger
+      loggerFactory = CUC::Log4rLoggerFactory.new("ORCTEST", "#{@orcConfigDir}/orchestrator_log_config.xml")
+   
+      @@logger = loggerFactory.getLogger   
+      if @@logger == nil then
+         puts
+		   puts "Error in OrchestratorIngester::initialize"
+     	   puts "Could not initialize logging system !  :-("
+         puts "Check ORC logs configuration under \"#{@orcConfigDir}/orchestrator_log_config.xml\"" 
+ 	      puts
+   	   exit(99)
+      end
+
+      ## ----------------------------------
+        
+      cmd = "rm -f /tmp/LOG_ORCUnitTest*"
+      puts cmd
+      system(cmd)        
+            
+   end
+   
+   ## ------------------------------------------------------
+   
+   Test::Unit.at_exit do
+      puts "End of ORC tests"
+   end
+   
+   ## ------------------------------------------------------ 
+   
+   ## Setup before every test-case
+   ##
+   def setup
+      puts __method__.to_s
+      puts
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+      puts "Nothing is done"
+      puts
+      puts
+      cmd = "rm -f /tmp/dec_orchestrator*.log"
+      puts cmd
+      system(cmd)
+
+      cmd = "rm -f /tmp/minarc/*"
+      puts cmd
+      system(cmd)
+
+      cmd = "rm -f /tmp/minarc_error2/*"
+      puts cmd
+      system(cmd)
+
+      cmd = "rm -f /tmp/orc_tmp/*"
+      puts cmd
+      system(cmd)
+
+      cmd = "rm -f /tmp/processorWd/*"
+      puts cmd
+      system(cmd)
+
+      cmd = "rm -f /tmp/success/*"
+      puts cmd
+      system(cmd)
+
+      cmd = "rm -rf /tmp/tmp/*"
+      puts cmd
+      system(cmd)
+
+      cmd = "rm -f /tmp/breakpoints/*"
+      puts cmd
+      system(cmd)
+
+
+   end
+   ## --------------------------------------------------------
+   ## After every test case
+
+   def teardown
+      puts __method__.to_s
+      puts
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+      puts "do nothing"
+      puts
+      puts
+   end
+   ## ------------------------------------------------------
+
+
+   ## ------------------------------------------------------
+
+   def test_commandline_helpers
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      
+      @@logger.info("orcUnitTests::#{__method__.to_s} START")
+      
+      cmd = "orcIngester"
+      assert(!system(cmd), cmd)
+
+      cmd = "orcIngester -v"
+      assert(system(cmd), cmd)
+
+      cmd = "orcIngester -u"
+      assert(system(cmd), cmd)
+
+      cmd = "orcIngester -h"
+      assert(system(cmd), cmd)
+
+      cmd = "orcIngester -c status"
+      assert(system(cmd), cmd)
+
+      system("orcIngester -c stop")
+
+      cmd = "orcIngester -c stop"
+      assert(!system(cmd), cmd)
+
+      cmd = "orcIngester -c start"
+      assert(!system(cmd), cmd)
+   
+      cmd = "orcIngester -v"
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -v"
+      assert(system(cmd), cmd)
+
+      cmd = "orcIngester -h"
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -h"
+      assert(system(cmd), cmd)
+
+      cmd = "orcManageDB -v"
+      assert(system(cmd), cmd)
+
+      cmd = "orcManageDB -h"
+      assert(system(cmd), cmd)
+
+
+#      @@conf = ORC_Environment.new      
+#      @@conf.wrapper_unset_config
+#      
+#      cmd = "orcIngester"
+#      assert(!system(cmd), cmd)
+#
+#      cmd = "orcQueueInput"
+#      assert(!system(cmd), cmd)
+
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+
+      cmd = "rm -f /tmp/dec_orchestrator*.log"
+      puts cmd
+      system(cmd)
+
+   end
+   ## ------------------------------------------------------
+
+   def test_parsers
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      
+      @@logger.info("orcUnitTests::#{__method__.to_s} START")
+      
+      require 'orc/ReadOrchestratorConfig'
+      
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      
+      puts "==========================================="
+      puts "Data Providers"
+      puts orcConf.getAllDataProviders
+      puts "==========================================="
+      puts "File-Types"
+      puts orcConf.getAllFileTypes
+      puts "==========================================="
+      puts "Data-Types"
+      puts orcConf.getAllDataTypes
+      puts "==========================================="
+      puts "Priority-Rules"
+      puts orcConf.getPriorityRules
+      puts "==========================================="
+      puts "Miscelanea"
+      puts orcConf.getAllMiscelanea
+      puts orcConf.getArchiveHandler
+      puts "==========================================="
+      puts "Failure directory"
+      puts orcConf.getFailureDir
+      puts "==========================================="
+      puts "Inventory"
+      puts orcConf.getInventory
+      assert(orcConf.getInventory != nil, "parsed inventory")
+      
+      assert(orcConf.isValidFileType?("MPL_ORBPRE"), "MPL_ORBPRE file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("MPL_ORBPRE"), "MPL_ORBPRE file-type configuration")
+
+      assert(orcConf.isValidFileType?("MPL_SPMPS_"), "MPL_SP???? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("MPL_SPMPS_"), "MPL_SP???? file-type is trigger type")
+      assert(orcConf.isValidFileType?("MPL_SPMTI_"), "MPL_SP???? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("MPL_SPMTI_"), "MPL_SP???? file-type is trigger type")
+      assert(orcConf.isValidFileType?("MPL_SPSGS_"), "MPL_SP???? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("MPL_SPSGS_"), "MPL_SP???? file-type is trigger type")
+
+      assert(orcConf.isValidFileType?("MPL_FSMTI_"), "MPL_FS???? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("MPL_FSMTI_"), "MPL_FS???? file-type is trigger type")
+      assert(orcConf.isValidFileType?("MPL_FSMPS_"), "MPL_FS???? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("MPL_FSMPS_"), "MPL_FS???? file-type is trigger type")
+      assert(orcConf.isValidFileType?("MPL_FSSGS_"), "MPL_FS???? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("MPL_FSSGS_"), "MPL_FS???? file-type is trigger type")
+
+      assert(orcConf.isValidFileType?("REP_PASS_E"), "REP_PASS_? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_PASS_E"), "REP_PASS_? file-type configuration")
+      
+      assert(orcConf.isValidFileType?("REP_PASS_2"), "REP_PASS_? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_PASS_2"), "REP_PASS_? file-type configuration")
+      
+      assert(orcConf.isValidFileType?("REP_PASS_5"), "REP_PASS_? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_PASS_5"), "REP_PASS_? file-type configuration")
+      
+      assert(orcConf.isValidFileType?("REP_OPDPC_"), "REP_OPDPC_ file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPDPC_"), "REP_OPDPC_ file-type configuration")
+
+      assert(orcConf.isValidFileType?("REP_OPAI__"), "REP_OPDPC_ file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPAI__"), "REP_OPDPC_ file-type configuration")
+
+      assert(orcConf.isValidFileType?("REP_ARC___"), "REP_ARC___ file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_ARC___"), "REP_ARC___ file-type configuration")
+
+      assert(orcConf.isValidFileType?("REP_STNACQ"), "REP_STNACQ file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_STNACQ"), "REP_STNACQ file-type configuration")
+      
+      assert(orcConf.isValidFileType?("SRA_EDRS_A"), "SRA_EDRS_? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("SRA_EDRS_A"), "SRA_EDRS_? file-type configuration")
+      assert(orcConf.isValidFileType?("SRA_EDRS_C"), "SRA_EDRS_? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("SRA_EDRS_C"), "SRA_EDRS_? file-type configuration")
+      
+      assert(orcConf.isValidFileType?("REP_OPDAM1"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPDAM1"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isValidFileType?("REP_OPDAM2"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPDAM2"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isValidFileType?("REP_OPDAM3"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPDAM3"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isValidFileType?("REP_OPDAM4"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPDAM4"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isValidFileType?("REP_OPDAM5"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPDAM5"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isValidFileType?("REP_OPDAM6"), "REP_OPDAM? file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPDAM6"), "REP_OPDAM? file-type configuration")
+     
+      assert(orcConf.isValidFileType?("REP_OPLTA_"), "REP_OPLTA_ file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPLTA_"), "REP_OPLTA_ file-type configuration")
+
+      assert(orcConf.isValidFileType?("REP_OPLTAS"), "REP_OPLTAS file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("REP_OPLTAS"), "REP_OPLTAS file-type configuration")
+      
+      assert(orcConf.isValidFileType?("S2A_OPER_REP_OPDPC__MPC__20170214T113527_V20170214T080018_20170214T080336"), "REP_OPDPC_ file-type configuration")
+      assert(!orcConf.isFileTypeTrigger?("S2A_OPER_REP_OPDPC__MPC__20170214T113527_V20170214T080018_20170214T080336"), "REP_OPDPC_ file-type configuration")
+
+      assert(orcConf.isValidFileType?("S2A_OPER_REP_OPDPC__SGS__20170214T113527_V20170214T080018_20170214T080336"), "REP_OPDPC_ file-type configuration")
+      assert(orcConf.isFileTypeTrigger?("S2A_OPER_REP_OPDPC__SGS__20170214T113527_V20170214T080018_20170214T080336"), "REP_OPDPC_ file-type configuration")
+
+      assert(orcConf.isValidFileType?("S2__OPER_GIP_PROBA2_MPC__20190502T000212_V20190506T004000_21000101T000000_B00.TGZ"), "REP_OPDPC_ file-type configuration")
+      assert(!orcConf.isFileTypeTrigger?("S2__OPER_GIP_PROBA2_MPC__20190502T000212_V20190506T004000_21000101T000000_B00.TGZ"), "REP_OPDPC_ file-type configuration")
+
+      assert(orcConf.isValidFileType?("S2A_OPER_GIP_PROBAS_MPC__20190307T000207_V20190311T000000_21000101T000000_B00.TGZ"), "REP_OPDPC_ file-type configuration")
+      assert(!orcConf.isFileTypeTrigger?("S2A_OPER_GIP_PROBAS_MPC__20190307T000207_V20190311T000000_21000101T000000_B00.TGZ"), "REP_OPDPC_ file-type configuration")
+
+      # assert(orcConf.isValidFileType?("GIP_PROBAS"), "REP_OPDPC_ file-type configuration")
+
+
+      assert(!orcConf.isValidFileType?("bizarre.sht"), "no rule")
+
+      puts
+      
+      @@arrInputFiles.each{|file|
+         puts file
+               
+         if file.include?("MPC_") == true then
+            assert(!orcConf.isFileTypeTrigger?(file), "wild-card configuration")
+            next
+         end
+         
+         if file.include?("bizarre") == true then
+            assert(!orcConf.isFileTypeTrigger?(file), "wild-card configuration")
+            next
+         end
+         
+         assert(orcConf.isValidFileType?(file), "wild-card configuration")
+
+      }
+
+      puts
+      puts "============================================="
+      
+      dataType = orcConf.getDataType("MPL__NPPF_")
+      procCmd  = orcConf.getExecutable(dataType)
+      puts dataType
+      puts procCmd
+      puts
+      assert((dataType != nil), "dataType")
+      assert((procCmd != nil), "procCmd")
+      
+      dataType = orcConf.getDataType("S2A_OPER_MPL__NPPF__20180720T110000_20180806T140000_0001.TGZ")
+      procCmd  = orcConf.getExecutable(dataType)
+      puts dataType
+      puts procCmd
+      puts
+      assert((dataType != nil), "dataType")
+      assert((procCmd != nil), "procCmd")
+
+#      dataType = orcConf.getDataType("SER_SR1_OA")
+#      puts dataType
+#      assert((dataType != nil), "dataType")
+       
+      procCmd  = orcConf.getExecutable(dataType)
+      puts procCmd
+      assert((procCmd != nil), "procCmd")
+
+      dataType = orcConf.getDataType("EDR_OPER_SER_SR1_OA_PDMC_20210111T060002_V20210111T052640_20210111T054055")
+      procCmd  = orcConf.getExecutable(dataType)
+      puts dataType
+      puts procCmd
+      puts
+      assert((dataType != nil), "dataType")
+
+# forced failure
+#      assert((procCmd != nil), "procCmd")
+     
+      
+      puts orcConf.getPollingFreq
+      puts
+      puts orcConf.getSchedulingFreq.to_f
+      puts
+      puts orcConf.getResourceManager
+
+
+      triggers = orcConf.getAllTriggerTypeInputs
+      
+      triggers.each{|trigger|
+         executable = orcConf.getExecutable(trigger)
+         puts "------------------"
+         puts executable.split(" ")[0]
+         cmd = "which #{executable.split(" ")[0]}"
+         isToolPresent = `#{cmd}`
+         assert(isToolPresent[0,1] == "/", "#{executable.split(" ")[0]} not in path")
+      }
+      
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      if arr.empty? == true then
+         return
+      end
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+
+   end
+   ## -----------------------------------------------------------
+
+   def test_train_slow
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+
+
+      FileUtils.rm_f("/tmp/dec_orchestrator*.log")
+      
+      cmd = "rm -f /tmp/dec_orchestrator*.log"
+      puts cmd
+      system(cmd)
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} START")
+
+      require 'orc/ReadOrchestratorConfig'
+      
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      pollingDir = orcConf.getPollingDir
+     
+     
+      cmd = "rm -rf #{pollingDir}/*"
+      puts cmd
+      system(cmd)
+      
+      system("orcBolg -c stop")
+      sleep(5.0)
+
+      system("minArcPurge -Y")
+      system("minArcDB -d")
+      system("minArcDB -c")
+      
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+      puts
+
+      cmd = "orcBolg -c start"
+      puts
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+   
+      @@arrInputFiles.each{|filename|
+         puts "orcUnitTests::#{__method__.to_s} #{filename}"
+         system("echo \'#{filename}\' > #{pollingDir}/#{filename}")
+         @@logger.info("orcUnitTests::#{__method__.to_s} file created at #{pollingDir}/#{filename}")
+         sleep(10)
+      }
+      
+      sleep(2)
+      
+      
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+
+      cmd = "orcQueueInput -l -F"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+
+      cmd = "orcQueueInput -l -S"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "grep ERROR #{arr[0]}"
+      puts cmd
+      assert(!system(cmd), "ERROR found in orchestrator logs  #{arr[0]} in #{__method__.to_s}") 
+   
+      system("orcBolg -c stop")
+      sleep(4.0)
+      
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+               
+   end
+
+   ## -----------------------------------------------------------
+
+   def test_train
+     
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+
+      require 'orc/ReadOrchestratorConfig'
+      
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      pollingDir = orcConf.getPollingDir
+     
+      FileUtils.rm_f("/tmp/dec_orchestrator*.log")
+      
+      cmd = "rm -f /tmp/dec_orchestrator*.log"
+      puts cmd
+      system(cmd)
+
+      cmd = "rm -f /tmp/orc_tmp/*"
+      puts cmd
+      system(cmd)
+  
+      cmd = "rm -rf /tmp/tmp/*"
+      puts cmd
+      system(cmd)
+  
+      @@logger.info("orcUnitTests::#{__method__.to_s} START")
+      
+      
+      system("orcBolg -c stop")
+      sleep(5.0)
+
+      system("minArcPurge -Y")
+      system("minArcDB -d")
+      system("minArcDB -c")
+      
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+
+      cmd = "orcBolg -c start"
+      assert(system(cmd), cmd)
+   
+      @@arrInputFiles.each{|filename|
+         cmd = "echo \'#{filename}\' > #{pollingDir}/#{filename}"
+         ret = system(cmd)
+         @@logger.debug("#{cmd} / #{ret}")
+         sleep(1)
+      }
+      
+      sleep(250)
+      
+      
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+
+      cmd = "orcQueueInput -l -F"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+
+      cmd = "orcQueueInput -l -S"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "grep ERROR #{arr[0]}"
+      puts cmd
+      assert(!system(cmd), "ERROR found in orchestrator logs in #{__method__.to_s}") 
+   
+      system("orcBolg -c stop")
+      sleep(5.0)
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+   
+   end
+   ## -----------------------------------------------------------
+
+   def test_allatonce
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+     
+      @@logger.info("orcUnitTests::#{__method__.to_s} START")     
+      
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      pollingDir = orcConf.getPollingDir
+                
+      system("orcBolg -c stop")
+      sleep(5.0)
+
+      system("minArcPurge -Y")
+      system("minArcDB -d")
+      system("minArcDB -c")
+      
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+     
+      @@arrInputFiles.each{|filename|
+         cmd = "echo \'#{filename}\' > #{pollingDir}/#{filename}"
+         ret = system(cmd)
+         @@logger.debug("#{cmd} / #{ret}")
+      }
+
+      sleep(3.0)
+
+      cmd = "orcBolg -c start"
+      assert(system(cmd), cmd)
+
+      sleep(300)
+
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+
+      cmd = "orcQueueInput -l -F"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+
+      cmd = "orcQueueInput -l -S"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcBolg -c stop"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "grep ERROR #{arr[0]}"
+      puts cmd
+      assert(!system(cmd), "ERROR found in orchestrator logs in #{__method__.to_s}") 
+
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+      
+
+   end
+      
+   ## -------------------------------------------------------------
+
+   ##
+   ## https://jira.elecnor-deimos.com/browse/S2MPASUP-290
+   ##
+   ## tables are not created to drive errors
+   ##
+   
+   def test_contingency_inventory
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+ 
+      @@logger.info("orcUnitTests::#{__method__.to_s} START")
+ 
+      cmd = "rm -f /tmp/minarc_error2/*"
+      puts cmd
+      system(cmd)
+ 
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      pollingDir = orcConf.getPollingDir
+          
+      FileUtils.rm_f("/tmp/dec_orchestrator*.log")
+      
+      system("orcBolg -c stop")
+      sleep(5.0)
+
+      ## ---------------------------------------------------
+      ## check presence of files at MINARC_ARCHIVE_ERROR
+
+      puts
+      puts "Check presence of files at MINARC_ARCHIVE_ERROR"
+      puts
+
+      system("minArcPurge -Y")
+      system("minArcDB -d")
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+            
+      @@arrInputFiles2.each{|filename|
+         cmd = "echo \'#{filename}\' > #{pollingDir}/#{filename}"
+         puts cmd
+         system(cmd)
+      }
+
+      sleep(3.0)
+
+      cmd = "orcBolg -c start -D"
+      assert(system(cmd), cmd)
+
+      sleep(2.0)
+
+
+      prevDir = Dir.pwd
+      
+      Dir.chdir(ENV['MINARC_ARCHIVE_ERROR'])
+      
+      puts Dir.pwd
+      puts Dir["*"]
+      
+      @@arrInputFiles2.each{|filename|
+         
+         puts File.basename(filename, ".*")
+         
+         arr = Dir["#{File.basename(filename, ".*")}*"] 
+         
+         assert(!arr.empty?, "#{File.basename(filename, ".*")} not found in MINARC_ARCHIVE_ERROR")
+         
+         assert(File.exist?(arr[0]), "file #{File.basename(filename, ".*")} moved into MINARC_ARCHIVE_ERROR")
+      }
+      
+      Dir.chdir(prevDir)
+
+      cmd = "orcBolg -c stop"
+      assert(system(cmd), cmd)
+
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "grep ERROR #{arr[0]}"
+      puts cmd
+      assert(system(cmd), "ERROR found in orchestrator logs in #{__method__.to_s}") 
+
+      # FileUtils.rm_f("/tmp/dec_orchestrator*.log")
+
+      ## ---------------------------------------------------
+
+      ## ---------------------------------------------------
+      ## check presence of files at ingestion error
+      
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+
+
+      puts
+      puts "Check presence of files at orc ingestion error #{orcConf.getFailureDir}"
+      puts
+
+      system("minArcDB -d")
+      system("minArcDB -c")
+      system("minArcPurge -Y")
+      
+      system("orcManageDB -d")
+
+      @@arrInputFiles2.each{|filename|
+         cmd = "echo \'#{filename}\' > #{pollingDir}/#{filename}"
+         puts cmd
+         system(cmd)
+      }
+
+      sleep(3.0)
+
+      cmd = "orcBolg -c start"
+      assert(system(cmd), cmd)
+
+      sleep(20)
+
+      cmd = "orcBolg -c stop"
+      assert(system(cmd), cmd)
+
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "grep ERROR #{arr[0]}"
+      puts cmd
+      assert(system(cmd), "ERROR found in orchestrator logs in #{__method__.to_s}") 
+
+      prevDir = Dir.pwd
+      
+      Dir.chdir(orcConf.getFailureDir)
+    
+      @@arrInputFiles2.each{|filename|
+         
+         puts File.basename(filename, ".*")
+         
+         arr = Dir["#{File.basename(filename, ".*")}*"] 
+         
+         assert(!arr.empty?, "#{File.basename(filename, ".*")} not found in #{orcConf.getFailureDir}")
+         
+         assert(File.exist?(arr[0]), "file #{File.basename(filename, ".*")} moved into #{orcConf.getFailureDir}")
+      }
+    
+      Dir.chdir(prevDir)
+ 
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+     
+   end
+   
+   ## -------------------------------------------------------------
+
+   def test_resiliency
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+     
+      @@logger.info("orcUnitTests::#{__method__.to_s} START")     
+      
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      pollingDir = orcConf.getPollingDir
+                
+      system("orcBolg -c stop")
+      sleep(5.0)
+
+      system("minArcPurge -Y")
+      system("minArcDB -d")
+      system("minArcDB -c")
+      
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+           
+      @@troubleMakers.each{|filename|
+         cmd = "echo \'#{filename}\' > #{pollingDir}/#{filename}"
+         ret = system(cmd)
+         @@logger.debug("#{cmd} / #{ret}")
+      }
+
+      sleep(3.0)
+
+      cmd = "orcBolg -c start"
+      assert(system(cmd), cmd)
+
+      sleep(50)
+   
+      cmd = "orcBolg -c stop"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "grep ERROR #{arr[0]}"
+      puts cmd
+      assert(system(cmd), "ERROR found in orchestrator logs in #{__method__.to_s}") 
+
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+
+      cmd = "orcQueueInput -l -F"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+
+      cmd = "orcQueueInput -l -S"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+      
+
+   end
+   
+   ## -------------------------------------------------------------
+
+   def test_states
+   
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+
+      cmd = "orcManageDB -d"
+      puts cmd
+      assert(system(cmd), cmd)
+      
+      cmd = "orcManageDB -c"
+      puts cmd
+      assert(system(cmd), cmd)
+      
+      
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+      
+      cmd = "orcQueueInput"
+      assert(!system(cmd), cmd)
+
+      cmd = "orcQueueInput -P -s NRT -f S2A_OPER_REP_OPDPC__SGS__21000101T000000_V21000101T000000_21000101T000001.EOF"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -P -s NRT -f S2A_OPER_REP_OPDPC__SGS__21000101T000000_V21000101T000000_21000101T000001.EOF"
+      puts cmd
+      assert(!system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueUpdate -d -P"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -f S2A_OPER_REP_OPDPC__SGS__21000101T000000_V21000101T000000_21000101T000001.EOF -s UKN"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+      
+      cmd = "orcQueueInput -f S2A_OPER_REP_OPDPC__SGS__21000101T000000_V21000101T000000_21000101T000001.EOF -s UKN"
+      puts cmd
+      assert(!system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueUpdate -d -Q"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueUpdate -f S2A_OPER_REP_OPDPC__SGS__21000101T000000_V21000101T000000_21000101T000001.EOF -s SUCCESS"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -S"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+      
+      cmd = "orcQueueUpdate -d -S"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -S"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+      
+      cmd = "orcQueueInput -P -s NRT -f S2A_OPER_MPL__NPPF__20180820T110000_20180906T140000_0001.EOF"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -f S2A_OPER_MPL__NPPF__20180820T110000_20180906T140000_0001.EOF -s UKN"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueUpdate -f S2A_OPER_MPL__NPPF__20180820T110000_20180906T140000_0001.EOF -s FAILURE"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -F"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueUpdate -d -F"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -F"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      ### ----------------------------------------
+      ###
+      ### contingency testing
+      
+      cmd = "orcQueueInput -f S2A_OPER_MPL__NPPF__20180820T110000_20180906T140000_0001.EOF -s UKN"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+      
+      @@conf = ORC_Environment.new
+      @@conf.wrapper_load_config 
+      @@conf.wrapper_print_environment
+      
+      require 'orc/ORC_DataModel'
+      
+      trigger = TriggerProduct.where(filename: "S2A_OPER_MPL__NPPF__20180820T110000_20180906T140000_0001.EOF").to_a[0]
+      
+      fail = FailingTriggerProduct.new  
+      fail.trigger_products   = trigger
+      fail.failure_date       = Time.now
+      fail.save!
+
+      puts
+      puts trigger.id
+      puts fail.trigger_product_id
+      puts
+
+      @@conf.unset_config
+
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueUpdate -f S2A_OPER_MPL__NPPF__20180820T110000_20180906T140000_0001.EOF -s FAILURE"
+      puts cmd
+      assert(!system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -Q"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -F"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      ### ----------------------------------------
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+
+
+   end
+
+   ## -------------------------------------------------------------
+
+   def test_orcValidateConfig
+      @@logger.info("START => orcUnitTests::#{__method__.to_s}")
+
+      checkDirectory("/tmp/orc_config")
+      FileUtils.rm_rf(Dir.glob('/tmp/orc_config/*'))
+
+      cmd = "orcValidateConfig -v"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcValidateConfig -l -D"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcValidateConfig -l"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcValidateConfig -g"
+      puts cmd
+      puts
+      assert(system(cmd), cmd)
+
+      cmd = "orcValidateConfig -X /tmp/orc_config -N borja@localhost"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      assert(File.exist?("/tmp/orc_config/orchestratorConfigFile.xml"),    "Extracted orchestratorConfigFile.xml")
+      assert(File.exist?("/tmp/orc_config/orchestrator_log_config.xml"),   "Extracted orchestrator_log_config.xml")
+
+      cmd = "orcValidateConfig -a"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+   
+      cmd = "orcValidateConfig -a -D"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcValidateConfig -C"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcValidateConfig -g -L"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcValidateConfig -a -L"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+
+      @@logger.info("END => orcUnitTests::#{__method__.to_s}")
+
+   end
+
+   ## -------------------------------------------------------------
+
+   def test_command_orcIngester
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+
+      
+      FileUtils.rm_f("/tmp/dec_orchestrator*.log")
+
+      cmd = "rm -f /tmp/dec_orchestrator*.log"
+      puts cmd
+      system(cmd)
+
+      cmd = "minArcDB -d"
+      puts cmd
+      system(cmd)
+      cmd = "minArcDB -c"
+      puts cmd
+      system(cmd)
+      cmd = "minArcPurge -Y"
+      puts cmd
+      system(cmd)
+      
+      cmd = "orcManageDB -d"
+      puts cmd
+      system(cmd)
+      
+      cmd = "orcManageDB -c"
+      puts cmd
+      system(cmd)
+      
+      cmd = "orcIngester -c stop"
+      puts cmd
+      system(cmd)
+
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      pollingDir = orcConf.getPollingDir
+      
+      cmd = "orcIngester -c start -i 5 -d #{pollingDir}"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      sleep(5.0)
+
+      @@arrInputFiles.each{|filename|
+         puts filename
+         system("echo \'#{filename}\' > #{pollingDir}/#{filename}")
+         sleep(3.0)
+
+      }
+
+      sleep(60.0)
+
+      cmd = "orcIngester -c stop"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      sleep(5.0)
+
+      cmd = "orcIngester -c start -i 5 -d #{pollingDir}"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      sleep(40.0)
+
+      cmd = "minArcRetrieve -A -l --noserver"
+      puts cmd
+      arrFiles = `#{cmd}`
+
+      puts arrFiles
+      puts arrFiles.split("\n").length
+      puts @@arrInputFiles.length
+
+      puts
+      puts
+      
+      cmd = "orcQueueInput -l -P"
+      puts cmd
+      arrFiles = `#{cmd}`
+      puts arrFiles
+      
+      assert(!arrFiles.to_s.include?("_MPC_"), "no MPC files queued")
+      
+      cmd = "orcIngester -c stop"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      sleep(5.0)
+      
+      
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "grep ERROR #{arr[0]}"
+      puts cmd
+      assert(!system(cmd), "ERROR found in orchestrator logs in #{__method__.to_s}") 
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+      
+
+   end
+   ## -------------------------------------------------------------
+   
+   def test_command_orcScheduler
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+
+      cmd = "orcBolg -c stop"
+      puts cmd
+      system(cmd)
+      sleep(5.0)
+
+      test_command_orcIngester
+      sleep(10.0)
+
+      cmd = "orcScheduler -c start"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      sleep(180.0)
+
+      cmd = "orcScheduler -c stop"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+
+      
+   end
+
+   ## -------------------------------------------------------------
+
+
+   ## -------------------------------------------------------------
+
+   def test_command_orcBolg
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+
+      system("orcBolg -c stop")
+      sleep(5.0)
+
+      cmd = "minArcPurge -Y"
+      assert(system(cmd), cmd)
+
+      filename = "S2A_OPER_REP_OPDPC__SGS__21000101T000000_V21000101T000000_21000101T000001.EOF"
+
+
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      pollingDir = orcConf.getPollingDir
+
+      system("echo \'#{filename}\' > #{pollingDir}/#{filename}")
+      FileUtils.rm_f("/tmp/dec_orchestrator*.log")
+
+
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+
+
+#      cmd = "orcBolg -c status"
+#      assert(system(cmd), cmd)
+#
+#      cmd = "orcBolg -c stop"
+#      assert(system(cmd), cmd)
+
+      cmd = "orcBolg -c start"
+      assert(system(cmd), cmd)
+
+      sleep(20.0)
+ 
+      cmd = "orcBolg -c stop"
+      assert(system(cmd), cmd)
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+
+      
+   end
+   ## -------------------------------------------------------------
+   
+   ## -------------------------------------------------------------
+   
+   def test_command_orcScheduler2
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+
+      FileUtils.rm_f("/tmp/dec_orchestrator*.log")
+
+      system("orcBolg -c stop")
+      sleep(5.0)
+
+      system("minArcPurge -Y")
+      system("minArcDB -d")
+      system("minArcDB -c")
+      
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+      
+      system("orcIngester -c stop")
+      
+#      cmd = "orcIngester -c start -i 5 -d /tmp"
+#      assert(system(cmd), cmd)
+#
+#      sleep(5.0)
+#      
+      cmd = "orcBolg -c start"
+      assert(system(cmd), cmd)
+
+      sleep(10.0)
+
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      pollingDir = orcConf.getPollingDir
+
+
+      filename = "S2A_OPER_REP_OPDPC__SGS__21000101T000000_V21000101T000000_21000101T000001.EOF"
+
+      system("echo \'#{filename}\' > #{pollingDir}/#{filename}")
+
+
+      sleep(60.0)
+
+      cmd = "orcBolg -c stop"
+      assert(system(cmd), cmd)
+
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "grep ERROR #{arr[0]}"
+      puts cmd
+      assert(!system(cmd), "ERROR found in orchestrator logs in #{__method__.to_s}") 
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+
+   end
+   ## -------------------------------------------------------------
+
+   ## TEST IS ON HOLD
+   ##
+   ## Killing makes trigger both error and successful
+
+#   def test_command_orcScheduler3
+#
+#      puts "================================================"
+#      puts "ORC_UnitTests::#{__method__.to_s}"
+#      puts
+#
+#      require 'orc/ReadOrchestratorConfig'
+#      
+#      orcConf = ORC::ReadOrchestratorConfig.instance
+#      orcConf.update
+#      pollingDir = orcConf.getPollingDir
+#
+#      system("mkdir -p /tmp/orc_polling_dir")
+#      
+#      cmd = "/tmp/dec_orchestrator*.log"
+#      puts cmd
+#      system(cmd)
+#      FileUtils.rm_f("/tmp/dec_orchestrator*.log")
+#
+#      system("minArcPurge -Y")
+#      system("minArcDB -d")
+#      system("minArcDB -c")
+#      
+#      system("orcManageDB -d")
+#      system("orcManageDB -c")
+#      
+#      cmd = "orcBolg -c stop"
+#      puts cmd
+#      system(cmd)
+#                 
+#      cmd = "orcBolg -c start"
+#      puts cmd
+#      assert(system(cmd), cmd)
+#
+#      @@arrInputFiles.each{|filename|
+#         puts filename
+#         system("echo \'#{filename}\' > #{pollingDir}/#{filename}")
+#         sleep(1.5)
+#
+#      }
+#
+#      sleep(4.0)
+#
+##      system("echo \'#{@@arrInputFiles[0]}\' > /tmp/#{@@arrInputFiles[0]}")
+##      sleep(30.0)
+#
+#      cmd = "orcBolg -c stop"
+#      assert(system(cmd), cmd)
+#
+#      sleep(2.0)
+#
+#      puts 
+#      puts "===================================================="
+#      puts "Archived Items"
+#      cmd = "minArcRetrieve --noserver -A -l"
+#      puts cmd
+#      assert(system(cmd), cmd)
+#      puts "===================================================="
+#      puts
+#
+#
+#      cmd = "orcQueueInput -l -P"
+#      assert(system(cmd), cmd)
+#
+#      cmd = "orcQueueInput -l -Q"
+#      assert(system(cmd), cmd)
+#
+#      cmd = "orcQueueInput -l -F"
+#      assert(system(cmd), cmd)
+#
+#      cmd = "orcQueueInput -l -S"
+#      assert(system(cmd), cmd)
+#
+#      arr = Dir["/tmp/dec_orchestrator*.log"]
+#      cmd = "grep ERROR #{arr[0]}"
+#      puts cmd
+#      assert(!system(cmd), "ERROR found in orchestrator logs in #{__method__.to_s}") 
+#
+#      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+#      arr = Dir["/tmp/dec_orchestrator*.log"]
+#      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+#      puts cmd
+#      system(cmd)
+#
+#
+#   end
+      
+   ## -------------------------------------------------------------
+   
+   def test_command_orcQueueInputhelpers
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+
+      cmd = "orcQueueInput -l -Q"
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -O"
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -F"
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -S"
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -I"
+      assert(system(cmd), cmd)
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+
+
+   end   
+   
+   ## --------------------------------------------------------
+
+
+   def test_bulk_pending
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+   
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+   
+      @@arrInputFiles.each{|file|
+         cmd = "orcQueueInput -P -s NRT -f #{file}"
+         puts cmd
+         assert(system(cmd), cmd)
+      }
+   
+      cmd = "orcQueueInput -P -l"
+      puts cmd
+      assert(system(cmd), cmd)
+      
+      cmd = "orcQueueInput --Bulk"
+      puts cmd
+      assert(system(cmd), cmd)
+      
+      cmd = "orcQueueInput -P -l"
+      puts cmd
+      assert(system(cmd), cmd)
+   
+      cmd = "orcQueueInput -Q -l"
+      puts cmd
+      assert(system(cmd), cmd)
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+
+   
+   end
+
+   ## -------------------------------------------------------------
+
+   def test_reprocessing
+
+      puts "================================================"
+      puts "ORC_UnitTests::#{__method__.to_s}"
+      puts
+     
+      @@logger.info("orcUnitTests::#{__method__.to_s} START")     
+      
+      orcConf = ORC::ReadOrchestratorConfig.instance
+      orcConf.update
+      pollingDir = orcConf.getPollingDir
+                
+      system("orcBolg -c stop")
+      sleep(5.0)
+
+      system("minArcPurge -Y")
+      system("minArcDB -d")
+      system("minArcDB -c")
+      
+      system("orcManageDB -d")
+      system("orcManageDB -c")
+     
+      filename = 'S2B_OPER_REP_OPDPC__SGS__20180721T061746_V20180721T061746_20180721T061746.EOF'
+
+      cmd = "echo \'#{filename}\' > #{pollingDir}/#{filename}"
+      ret = system(cmd)
+      @@logger.debug("#{cmd} / #{ret}")
+      
+      sleep(3.0)
+
+      cmd = "orcBolg -c start"
+      assert(system(cmd), cmd)
+
+      sleep(30)
+
+      cmd = "orcQueueInput -l -Q"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -F"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -S"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -d S2B_OPER_REP_OPDPC__SGS__20180721T061746_V20180721T061746_20180721T061746.EOF"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -Q"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -F"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -S"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "echo \'#{filename}\' > #{pollingDir}/#{filename}"
+      ret = system(cmd)
+      @@logger.debug("#{cmd} / #{ret}")
+      
+      sleep(30)
+
+      cmd = "orcQueueInput -l -Q"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -P"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -F"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "orcQueueInput -l -S"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+
+      cmd = "echo \'#{filename}\' > #{pollingDir}/#{filename}"
+      ret = system(cmd)
+      @@logger.debug("#{cmd} / #{ret}")
+      
+      sleep(30)
+
+      cmd = "orcBolg -c stop"
+      @@logger.debug(cmd)
+      assert(system(cmd), cmd)
+      
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "grep ERROR #{arr[0]}"
+      puts cmd
+      assert(!system(cmd), "ERROR found in orchestrator logs in #{__method__.to_s}") 
+
+      @@logger.info("orcUnitTests::#{__method__.to_s} END")
+      arr = Dir["/tmp/dec_orchestrator*.log"]
+      cmd = "cp #{arr[0]} /tmp/LOG_ORCUnitTest_#{__method__.to_s}"
+      puts cmd
+      system(cmd)
+      
+   end
+      
+   ## -------------------------------------------------------------
+
+
+
+end
+
+
+# =====================================================================
+
+
+# -----------------------------------------------------------
+
+

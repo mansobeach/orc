@@ -1,0 +1,366 @@
+<OrchestratorConfiguration>
+
+<!-- https://jira.elecnor-deimos.com/browse/S2MPASUP-388 -->
+<!-- https://jira.elecnor-deimos.com/browse/S2MPASUP-443 -->
+<!-- https://jira.elecnor-deimos.com/browse/S2MPASUP-457 -->
+
+   <List_of_DataProviders>
+
+      <DataProvider isTriggerType="no">
+	      <DataType>MPC</DataType>
+	      <FileType>S2?_OPER_REP???????_MPC?_???????????????_V???????????????_???????????????*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="no">
+              <DataType>MPC</DataType>
+              <FileType>*MPL_FSACK*</FileType>
+              <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>DPC</DataType>
+	      <FileType>*REP_OPDPC_*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+   
+      <DataProvider isTriggerType="yes">
+	      <DataType>OPHKTM</DataType>
+	      <FileType>*REP_OPHKTM*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>REPARC</DataType>
+	      <FileType>*REP_ARC___*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>REPACQ</DataType>
+	      <FileType>*REP_STNACQ*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+   
+      <DataProvider isTriggerType="yes">
+	      <DataType>NPPF</DataType>
+	      <FileType>*MPL__NPPF_*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>PLANDFEP</DataType>
+	      <FileType>*MPL_SP????*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>PLANANTENNA</DataType>
+	      <FileType>*MPL_FS????*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+      
+      <DataProvider isTriggerType="yes">
+	      <DataType>DFEPREP</DataType>
+	      <FileType>*REP_PASS_?*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+      
+      <DataProvider isTriggerType="yes">
+	      <DataType>SRAEDRS</DataType>
+	      <FileType>*SRA_EDRS_?*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>OPDAM</DataType>
+	      <FileType>*REP_OPDAM?*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>OPLTA</DataType>
+	      <FileType>*REP_OPLTA_*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>OPAI</DataType>
+	      <FileType>*REP_OPAI__*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+                  
+      <DataProvider isTriggerType="yes">
+	      <DataType>OPLTAS</DataType>
+	      <FileType>*REP_OPLTAS*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>ORBPRE</DataType>
+	      <FileType>*MPL_ORBPRE*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>DEC_F_RECV</DataType>
+	      <FileType>*DEC_F_RECV*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>TLM__REQ_B</DataType>
+	      <FileType>*TLM__REQ_B*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+ 	      <DataType>OPDC</DataType>
+ 	      <FileType>*REP_OPDC__*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+ 	      <DataType>OPPRIP</DataType>
+ 	      <FileType>*OPER_REP_OPPRIP*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+ 	      <DataType>WEPRIP</DataType>
+ 	      <FileType>*OPER_REP_WEPRIP*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>EDRSMOC</DataType>
+	      <FileType>EDR*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>OPDHUS</DataType>
+	      <FileType>*DEC_OPER_AVDHUS*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="no">
+	      <DataType>S2_UNKNOWN</DataType>
+	      <FileType>S2*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+ 
+      <DataProvider isTriggerType="yes">
+	      <DataType>FOSUNAV</DataType>
+	      <FileType>*OPER_REP__SUP__*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>EDRSFAILURE</DataType>
+	      <FileType>EDR*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+      
+   </List_of_DataProviders>
+
+
+   <!-- ====================================================== -->
+
+   <List_of_PriorityRules>
+      <PriorityRule rank="1"     class="DataType" type="NPPF"        sort="DESC" />
+      <PriorityRule rank="2"     class="DataType" type="ORBPRE"      sort="DESC" />
+      <PriorityRule rank="3"     class="DataType" type="PLANDFEP"    sort="DESC" />
+      <PriorityRule rank="4"     class="DataType" type="PLANANTENNA" sort="DESC" />
+      <PriorityRule rank="5"     class="DataType" type="SRAEDRS"     sort="DESC" />
+      <PriorityRule rank="6"     class="DataType" type="DFEPREP"     sort="DESC" />
+      <PriorityRule rank="7"     class="DataType" type="REPACQ"      sort="DESC" />
+      <PriorityRule rank="8"     class="DataType" type="DPC"         sort="DESC" />
+      <PriorityRule rank="9"     class="DataType" type="REPARC"      sort="DESC" />
+      <PriorityRule rank="10"    class="DataType" type="OPHKTM"      sort="DESC" />
+      <PriorityRule rank="11"    class="DataType" type="OPAI"        sort="DESC" />
+      <PriorityRule rank="12"    class="DataType" type="OPLTA"       sort="DESC" />
+      <PriorityRule rank="13"    class="DataType" type="OPLTAS"      sort="DESC" />
+      <PriorityRule rank="14"    class="DataType" type="OPDAM"       sort="DESC" />
+      <PriorityRule rank="15"    class="DataType" type="OPDHUS"      sort="DESC" />
+      <PriorityRule rank="16"    class="DataType" type="OPDC"        sort="DESC" />
+      <PriorityRule rank="17"    class="DataType" type="DEC_F_RECV"  sort="DESC" />
+      <PriorityRule rank="18"    class="DataType" type="TLM__REQ_B"  sort="DESC" />
+      <PriorityRule rank="19"    class="DataType" type="OPPRIP"      sort="DESC" />
+      <PriorityRule rank="20"    class="DataType" type="WEPRIP"      sort="DESC" />
+      <PriorityRule rank="21"    class="DataType" type="EDRSMOC"     sort="DESC" />
+      <PriorityRule rank="22"    class="DataType" type="FOSUNAV"     sort="DESC" />
+   </List_of_PriorityRules>
+
+   <!-- ====================================================== -->
+  
+   <List_of_ProcessingRules>
+   
+      <ProcessingRule dataType="ORBPRE" triggerType="ORBPRE" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="NPPF" triggerType="NPPF" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="DFEPREP" triggerType="DFEPREP" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="REPACQ" triggerType="REPACQ" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="PLANDFEP" triggerType="PLANDFEP" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="PLANANTENNA" triggerType="PLANANTENNA" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="SRAEDRS" triggerType="SRAEDRS" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="DPC" triggerType="DPC" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="OPHKTM" triggerType="OPHKTM" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType="REPARC" triggerType="REPARC" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="OPAI" triggerType="OPAI" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="OPLTA" triggerType="OPLTA" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="OPLTAS" triggerType="OPLTAS" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="OPDAM" triggerType="OPDAM" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="OPDHUS" triggerType="OPDHUS" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="OPDC" triggerType="OPDC" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="DEC_F_RECV" triggerType="DEC_F_RECV" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="TLM__REQ_B" triggerType="TLM__REQ_B" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType='OPPRIP' triggerType='OPPRIP' coverage='SAME'>
+         <executable>eboa_triggering.py -r -f %F</executable>
+         <List_of_Inputs>
+         </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType='WEPRIP' triggerType='WEPRIP' coverage='SAME'>
+         <executable>eboa_triggering.py -r -f %F</executable>
+         <List_of_Inputs>
+         </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType='EDRSMOC' triggerType='EDRSMOC' coverage='SAME'>
+         <executable>eboa_triggering.py -r -f %F</executable>
+         <List_of_Inputs>
+         </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType='FOSUNAV' triggerType='FOSUNAV' coverage='SAME'>
+         <executable>eboa_triggering.py -r -f %F</executable>
+         <List_of_Inputs>
+         </List_of_Inputs>
+      </ProcessingRule>
+
+
+   </List_of_ProcessingRules>
+   
+   <List_of_Breakpoints>
+   <!--
+      <breakpoint key="Scenes_Vector_input" value="false" mandatory="false" valueType="boolean"/>
+      <breakpoint key="Scenes_Normalized" value="false" mandatory="false" valueType="boolean"/>
+      <breakpoint key="Scenes_Vector_output" value="false" mandatory="false" valueType="boolean"/>
+   -->
+   </List_of_Breakpoints>
+   
+   <Miscelanea>
+      <ArchiveHandler>S2PDGS</ArchiveHandler>
+      <PollingDir>/tmp/orc_tmp</PollingDir>
+      <PollingFreq unit="s">3</PollingFreq>
+      <ParallelIngestions>1</ParallelIngestions>
+      <SchedulingFreq unit="s">10</SchedulingFreq>
+      <ResourceManager>orcResourceChecker</ResourceManager>
+      <ProcWorkingDir>/tmp/processorWd</ProcWorkingDir>
+      <SuccessDir>/tmp/success</SuccessDir>
+      <FailureDir>/tmp/failure</FailureDir>
+      <BreakPointDir>/tmp/breakpoints</BreakPointDir>
+      <TmpDir>/tmp/tmp</TmpDir>
+   </Miscelanea>
+
+   <Inventory>
+      <Database_Adapter>postgresql</Database_Adapter>
+      <Database_Host>localhost</Database_Host>
+      <Database_Port>5432</Database_Port>      
+      <Database_Name>postgres</Database_Name>
+      <Database_User>e2edc</Database_User>
+      <Database_Password>e2edc</Database_Password>
+   </Inventory>
+
+   
+</OrchestratorConfiguration>

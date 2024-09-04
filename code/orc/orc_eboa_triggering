@@ -1,0 +1,123 @@
+#!/usr/bin/env ruby
+
+#
+# == Usage
+# orcResourceChecker
+# 
+# == Author
+# DEIMOS-Space S.L.
+#
+# == Copyright
+# Copyright (c) 2019 ESA - DEIMOS Space S.L.
+#
+
+#########################################################################
+#
+# === Ruby source for #orcManageDB executable
+#
+# === Written by DEIMOS Space S.L. (bolf)
+#
+# === Orchestrator (orc)
+# 
+# module ORC
+#
+#########################################################################
+
+require 'rubygems'
+require 'active_record'
+require 'getoptlong'
+
+
+require 'orc/ORC_Environment'
+
+
+# MAIN script function
+def main
+
+   include ORC
+
+   @bUp              = false
+   @bDown            = false
+   @bUpdate          = false
+   @bExport          = false
+   @bShowVersion     = false
+   @bShowUsage       = false
+   @full_path_file   = ""
+   
+   
+   opts = GetoptLong.new(
+     ["--file", "-f",	               GetoptLong::REQUIRED_ARGUMENT],
+     ["--export-rows",     "-e",       GetoptLong::NO_ARGUMENT],
+     ["--version", "-v",               GetoptLong::NO_ARGUMENT],
+     ["--usage",   "-u",               GetoptLong::NO_ARGUMENT],
+     ["--help",            "-h",       GetoptLong::NO_ARGUMENT]
+     )
+    
+   begin
+      opts.each do |opt, arg|
+         case opt
+            when "--file"              then @full_path_file       = arg.to_s     
+            when "--usage"             then @bShowUsage           = true
+			   when "--help"              then @bShowUsage           = true
+            when "--version"           then @bShowVersion         = true
+         end
+      end
+   rescue Exception => e
+      # puts e.to_s
+      exit(99)
+   end
+
+   if @bShowVersion == true then
+      print("\nESA - DEIMOS-Space S.L. ", File.basename($0), " Version: [#{ORC::VERSION}]", "\n")
+      hRecord = ORC::CHANGE_RECORD
+      hRecord.each_pair{|key, value|
+         puts "#{key} => #{value}"
+      }
+      exit(0)
+   end
+
+   # -------------------------------------------------------
+
+   if @bShowUsage == true then
+      usage
+      exit(0)
+   end
+
+   # -------------------------------------------------------
+
+   if @full_path_file == "" then
+      exit(99)
+   end
+
+   # -------------------------------------------------------
+
+   puts "orc_eboa_triggering #{@full_path_file}"
+   
+   puts File.delete(@full_path_file)
+ 
+   exit(0)
+
+end
+
+#-------------------------------------------------------------
+
+def usage
+   fullpathFile = File.expand_path(__FILE__)
+      
+   value = `#{"head -17 #{fullpathFile}"}`
+      
+   value.lines.drop(1).each{
+      |line|
+      len = line.length - 1
+      puts line[2, len]
+   }
+end
+
+#-------------------------------------------------------------
+
+
+#=====================================================================
+# Start of the main body
+main
+# End of the main body
+#=====================================================================

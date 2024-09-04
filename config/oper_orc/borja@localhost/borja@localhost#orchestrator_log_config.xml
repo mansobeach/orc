@@ -1,0 +1,37 @@
+  <log4r_config>
+ 
+   <pre_config>
+    <parameter name="mainLoggerName" value="ORC"/>
+   </pre_config>
+ 
+ <!-- ============================================= -->
+
+<outputter name="console"  level="INFO" >
+   <type>StdoutOutputter</type>
+	<formatter type="Log4r::PatternFormatter" pattern="[%5l] %d %c.#{moduleName} - %m">
+		<date_pattern>%Y-%m-%d %H:%M:%S</date_pattern>
+	</formatter>
+</outputter>
+
+<!-- ============================================= -->
+
+ 
+   <outputter name="orchestrator_log" level="DEBUG" >
+    <type>FileOutputter</type>
+    <filename>/tmp/dec_orchestrator.log</filename>
+    <formatter type="PatternFormatter" pattern="[%5l] %d %c.#{moduleName} - %m">
+     <date_pattern>%Y-%m-%d %H:%M:%S</date_pattern>
+    </formatter>
+    <trunc>false</trunc>
+   </outputter>
+
+ <!-- ============================================= -->
+
+   <logger name="ORC" level="DEBUG" trace="false">
+    <outputter>orchestrator_log</outputter>
+    <outputter>console</outputter>
+   </logger>
+ 
+ <!-- ============================================= -->
+ 
+  </log4r_config>

@@ -1,0 +1,311 @@
+<OrchestratorConfiguration>
+
+
+   <List_of_DataProviders>
+
+
+<!-- 
+
+1. AUX_TLE
+2. ORB_SOERT
+4. PLA_SCR
+5. PLA_SBA
+6. PLA_OSC
+7. PLA_MAN
+8. PLA_MAINT
+9. ORB_OEM
+10. ksat_schedule_request
+
+-->
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>AUX_TLE</DataType>
+	      <FileType>*NAOS*.tle</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>ORB_SOERT</DataType>
+	      <FileType>*ORB_SOERT*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>PLA_SCR</DataType>
+	      <FileType>*PLA_SCR*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>PLA_SBA</DataType>
+	      <FileType>*PLA_SBA*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>PLA_OSC</DataType>
+	      <FileType>*PLA_OSC*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>PLA_DPL</DataType>
+	      <FileType>*PLA_DPL*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>PLA_MAN</DataType>
+	      <FileType>*PLA_MAN*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>PLA_MAINT</DataType>
+	      <FileType>*PLA_MAINT*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>      
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>ORB_OEM</DataType>
+	      <FileType>*ORB_OEM*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>   
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>SCH_REQ</DataType>
+	      <FileType>*ksat_schedule_request*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>TM_GPS</DataType>
+	      <FileType>*TM__GPS*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>      
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>TM_THR</DataType>
+	      <FileType>*TM__THR*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>  
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>TM_MSC</DataType>
+	      <FileType>*TM__MSC*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>  
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>DEC_GPS</DataType>
+	      <FileType>*DEC_TM-GPS*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="no">
+	      <DataType>ADA_DOP___</DataType>
+	      <FileType>*TRK_*RAN*.GEO</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="no">
+	      <DataType>ADA_TDA___</DataType>
+	      <FileType>*TRK_*ANG*.GEO</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="no">
+	      <DataType>PLA_GSP___</DataType>
+	      <FileType>*PLA_GSP___*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="no">
+	      <DataType>ORB_OPM___</DataType>
+	      <FileType>*ORB_OPM___*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>CNF_OAT___</DataType>
+	      <FileType>*CNF_OAT___*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="no">
+	      <DataType>CNF_CONT__</DataType>
+	      <FileType>*CNF_CONT__*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+      <DataProvider isTriggerType="yes">
+	      <DataType>PLA_PGU</DataType>
+	      <FileType>*PLA_PGU*</FileType>
+	      <Directory>[update]/data/l0-in/</Directory>
+      </DataProvider>
+
+   </List_of_DataProviders>
+
+
+   <!-- ====================================================== -->
+
+   <List_of_PriorityRules>
+      <PriorityRule rank="1"     class="DataType" type="AUX_TLE"        sort="DESC" />
+      <PriorityRule rank="3"     class="DataType" type="CNF_OAT___"     sort="DESC" />
+      <PriorityRule rank="2"     class="DataType" type="ORB_SOERT"      sort="DESC" />
+      <PriorityRule rank="4"     class="DataType" type="PLA_SCR"        sort="DESC" />
+      <PriorityRule rank="5"     class="DataType" type="PLA_SBA"        sort="DESC" />
+      <PriorityRule rank="6"     class="DataType" type="PLA_OSC"        sort="DESC" />
+      <PriorityRule rank="7"     class="DataType" type="PLA_MAN"        sort="DESC" />
+      <PriorityRule rank="8"     class="DataType" type="PLA_MAINT"      sort="DESC" />
+      <PriorityRule rank="9"     class="DataType" type="ORB_OEM"        sort="DESC" />
+      <PriorityRule rank="10"    class="DataType" type="SCH_REQ"        sort="DESC" />
+      <PriorityRule rank="11"    class="DataType" type="PLA_DPL"        sort="DESC" />
+      <PriorityRule rank="12"    class="DataType" type="TM_GPS"         sort="DESC" />
+      <PriorityRule rank="13"    class="DataType" type="TM_THR"         sort="DESC" />
+      <PriorityRule rank="14"    class="DataType" type="TM_MSC"         sort="DESC" />
+      <PriorityRule rank="15"    class="DataType" type="PLA_PGU"        sort="DESC" />
+   </List_of_PriorityRules>
+
+   <!-- ====================================================== -->
+  
+   <List_of_ProcessingRules>
+   
+      <ProcessingRule dataType="AUX_TLE" triggerType="AUX_TLE" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="ORB_SOERT" triggerType="ORB_SOERT" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="CNF_OAT___" triggerType="CNF_OAT___" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="PLA_OSC" triggerType="PLA_OSC" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType="PLA_SCR" triggerType="PLA_SCR" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="PLA_SBA" triggerType="PLA_SBA" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="PLA_OSC" triggerType="PLA_OSC" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType="PLA_DPL" triggerType="PLA_DPL" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType="PLA_MAN" triggerType="PLA_MAN" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="PLA_MAINT" triggerType="PLA_MAINT" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="ORB_OEM" triggerType="ORB_OEM" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      <ProcessingRule dataType="SCH_REQ" triggerType="SCH_REQ" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType="TM_GPS" triggerType="TM_GPS" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType="TM_MSC" triggerType="TM_MSC" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType="TM_THR" triggerType="TM_THR" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType="DEC_GPS" triggerType="DEC_GPS" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>
+
+      <ProcessingRule dataType="PLA_PGU" triggerType="PLA_PGU" coverage="SAME">
+	      <executable>eboa_triggering.py -r -f %F</executable>
+	      <List_of_Inputs>
+	      </List_of_Inputs>
+      </ProcessingRule>   
+
+      
+   </List_of_ProcessingRules>
+   
+   <List_of_Breakpoints>
+   <!--
+      <breakpoint key="Scenes_Vector_input" value="false" mandatory="false" valueType="boolean"/>
+      <breakpoint key="Scenes_Normalized" value="false" mandatory="false" valueType="boolean"/>
+      <breakpoint key="Scenes_Vector_output" value="false" mandatory="false" valueType="boolean"/>
+   -->
+   </List_of_Breakpoints>
+   
+   <Miscelanea>
+      <ArchiveHandler>NAOS</ArchiveHandler>
+      <PollingDir>/inputs</PollingDir>
+      <PollingFreq unit="s">3</PollingFreq>
+      <ParallelIngestions>1</ParallelIngestions>
+      <SchedulingFreq unit="s">10</SchedulingFreq>
+      <ResourceManager>orcResourceChecker</ResourceManager>
+      <ProcWorkingDir>/minarc_root/processorWd</ProcWorkingDir>
+      <SuccessDir>/minarc_root/success</SuccessDir>
+      <FailureDir>/minarc_root/failure</FailureDir>
+      <BreakPointDir>/minarc_root/breakpoints</BreakPointDir>
+      <TmpDir>/minarc_root/tmp</TmpDir>
+    </Miscelanea>
+ 
+   <Inventory>
+      <Database_Adapter>postgresql</Database_Adapter>
+      <Database_Host></Database_Host>
+      <Database_Port>5432</Database_Port>      
+      <Database_Name>minarc_orc_db</Database_Name>
+      <Database_User>minarc_orc</Database_User>
+      <Database_Password></Database_Password>
+   </Inventory>
+
+   
+</OrchestratorConfiguration>
