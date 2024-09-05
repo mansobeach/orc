@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+ 
+ <xs:simpleType name="EarthExplorerFileType">
+  <xs:restriction base="xs:string">
+   <xs:pattern value="([0-9A-Z_]){10}"/>
+  </xs:restriction>
+ </xs:simpleType>
+
+ <xs:simpleType name="EnvironmentVariable">
+  <xs:restriction base="xs:string">
+   <xs:pattern value="($)([0-9A-Za-z_])+"/>
+  </xs:restriction>
+ </xs:simpleType>
+
+ <xs:simpleType name="SimpleAcronymType">
+  <xs:restriction base="xs:string">
+   <xs:pattern value="([0-9A-Z_])+"/>
+  </xs:restriction>
+ </xs:simpleType>
+
+ <xs:simpleType name="YesNoType">
+  <xs:restriction base="xs:string">
+   <xs:pattern value="((Y|y)(E|e)(S|s))|((N|n)(O|o))"/>
+  </xs:restriction>
+ </xs:simpleType>
+
+ <xs:simpleType name="BooleanType">
+  <xs:restriction base="xs:string">
+   <xs:pattern value="((T|t)(R|r)(U|u)(E|e))|((F|f)(A|a)(L|l)(S|s)(E|e))"/>
+  </xs:restriction>
+ </xs:simpleType>
+
+ <xs:simpleType name="posIntType">
+  <xs:restriction base="xs:integer">
+   <xs:minInclusive value="0"/>
+  </xs:restriction>
+ </xs:simpleType>
+
+ <xs:simpleType name="UnitIsSecondsType">
+   <xs:restriction base="xs:string">
+     <xs:enumeration value="seconds"/>
+     <xs:enumeration value="SECONDS"/>
+     <xs:enumeration value="s"/>
+     <xs:enumeration value="S"/>
+   </xs:restriction>
+ </xs:simpleType>
+
+ <xs:simpleType name="timeUnitType">
+   <xs:restriction base="xs:string">
+     <xs:enumeration value="s"/>
+     <xs:enumeration value="h"/>
+     <xs:enumeration value="d"/>
+     <xs:enumeration value="w"/>
+     <xs:enumeration value="m"/>
+     <xs:enumeration value="y"/>
+   </xs:restriction>
+ </xs:simpleType>
+
+</xs:schema>
