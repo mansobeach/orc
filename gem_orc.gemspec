@@ -30,19 +30,20 @@ Gem::Specification.new do |s|
   s.bindir        = ['code/orc']
 
   s.executables   = [ 
-                     'orcBolg', \
-                     'orcIngester', \
-                     'orc_eboa_triggering', \
-                     'orcManageDB', \
-                     'orcQueueInput', \
-                     'orcQueueUpdate', \
-                     'orcResourceChecker', \
-                     'orcScheduler', \
-                     'orcUnitTests', \
-                     'orcUnitTests_NAOS', \
-                     'orcUnitTests_BOA', \
-                     'orcValidateConfig'
-                     ]
+                    'orcBolg', \
+                    'orc_test_eboa_triggering.py', \
+                    'orcIngester', \
+                    'orc_eboa_triggering', \
+                    'orcManageDB', \
+                    'orcQueueInput', \
+                    'orcQueueUpdate', \
+                    'orcResourceChecker', \
+                    'orcScheduler', \
+                    'orcUnitTests', \
+                    'orcUnitTests_NAOS', \
+                    'orcUnitTests_BOA', \
+                    'orcValidateConfig'
+                    ]
 
   s.homepage    = 'https://github.com/mansobeach/orc'
   

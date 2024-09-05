@@ -1,19 +1,5 @@
 #!/usr/bin/env ruby
 
-#########################################################################
-#
-# === Ruby source for #ORC_Migrations class
-#
-# === Written by DEIMOS Space S.L. (bolf)
-#
-# === ORC Component
-# 
-# $Id: ORC_Migrations.rb,v 1.8 2009/03/18 11:13:48 decdev Exp $
-#
-# module ORC
-#
-#########################################################################
-
 
 require 'rubygems'
 require 'active_record'

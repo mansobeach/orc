@@ -9,24 +9,7 @@
 #     --export-rows     it exports all rows
 #     --help            shows this help
 # 
-# == Author
-# DEIMOS-Space S.L.
-#
-# == Copyright
-# Copyright (c) 2008 ESA - DEIMOS Space S.L.
-#
 
-#########################################################################
-###
-### === Ruby source for #orcManageDB executable
-###
-### === Written by DEIMOS Space S.L. (bolf)
-###
-### === Orchestrator (orc)
-### 
-### module ORC
-###
-#########################################################################
 
 require 'rubygems'
 require 'active_record'
@@ -289,7 +272,7 @@ end
 def usage
    fullpathFile = File.expand_path(__FILE__)
       
-   value = `#{"head -17 #{fullpathFile}"}`
+   value = `#{"head -11 #{fullpathFile}"}`
       
    value.lines.drop(1).each{
       |line|

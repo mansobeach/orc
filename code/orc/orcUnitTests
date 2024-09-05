@@ -1,17 +1,5 @@
 #!/usr/bin/env ruby
 
-#########################################################################
-##
-## === Ruby source for #ORC_TestCases class
-##
-## === Written by DEIMOS Space S.L. (bolf)
-##
-## === Orchestrator Component
-## 
-## module ORC
-##
-#########################################################################
-
 require 'rubygems'
 require 'test/unit'
 require 'fileutils'
@@ -20,7 +8,7 @@ require 'cuc/DirUtils'
 require 'cuc/Log4rLoggerFactory'
 
 require 'orc/ORC_Environment'
-require 'arc/MINARC_Environment'
+
 
 ## Preconditions:
 #
@@ -188,16 +176,9 @@ class ORCTestCase < Test::Unit::TestCase
       require 'orc/ReadOrchestratorConfig'
       
       @@pollingDir = ORC::ReadOrchestratorConfig.instance.getPollingDir
-      
-      @@conf = MINARC_Environment.new
 
-      ## minArc configuration is now shipped within the gem
-      ## and it is used the one installed
-#      @@conf.wrapper_load_config_development
-#
-#      if @@execEnvFile == nil or @@execEnvFile == "" then
-#         @@conf.wrapper_load_environment_test
-#      end
+=begin
+      @@conf = MINARC_Environment.new
 
       puts
       puts "Creating minARC directories"
@@ -205,7 +186,13 @@ class ORCTestCase < Test::Unit::TestCase
       @@conf.wrapper_load_config
 
       @@conf.wrapper_createEnvironmentDirs
-      
+     
+      checkDirectory(ENV['MINARC_TMP'])
+      checkDirectory(ENV['MINARC_ARCHIVE_ROOT'])
+      checkDirectory(ENV['MINARC_ARCHIVE_ERROR'])
+      checkDirectory(ARC::ReadMinarcConfig.instance.getArchiveIntray)
+
+
       if @@conf.wrapper_check_environment == false then
          puts "minArc environment not suited for ORC unit tests"
          puts
@@ -215,7 +202,7 @@ class ORCTestCase < Test::Unit::TestCase
          @@conf.wrapper_print_environment
          puts
       end
-      
+=end
       
       
       system("minArcDB -c")

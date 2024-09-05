@@ -71,22 +71,7 @@
 #     --Debug                    shows Debug info during the execution
 #     --version                  shows version number
 # 
-#
-# == Author
-# DEIMOS-Space S.L.
-#
-#
-# == Copyright
-# Copyright (c) 2008 ESA - DEIMOS Space S.L.
-#
 
-#########################################################################
-##
-## === SMOS NRTP Orchestrator
-##
-## Git: $Id: orcQueueInput,v 1.16 2009/03/24 17:33:27 decdev Exp $
-##
-#########################################################################
 
 require 'getoptlong'
 
@@ -851,7 +836,7 @@ end
 def usage
    fullpathFile = File.expand_path(__FILE__)
       
-   value = `#{"head -81 #{fullpathFile}"}`
+   value = `#{"head -73 #{fullpathFile}"}`
       
    value.lines.drop(1).each{
       |line|

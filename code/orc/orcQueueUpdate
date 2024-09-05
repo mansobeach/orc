@@ -48,20 +48,6 @@
 #     --stop                     it specifies a stoping sensing time to be archived with. Shortcut = -b
 # 
 #
-# == Author
-# DEIMOS-Space S.L.
-#
-# == Copyright
-# Copyright (c) 2008 ESA - DEIMOS Space S.L.
-#
-
-#########################################################################
-###
-### === SMOS NRTP Orchestrator
-###
-### Git: $Id: orcQueueUpdate,v 1.8 2009/03/18 14:33:41 bolf Exp $
-###
-#########################################################################
 
 require 'getoptlong'
 
@@ -620,7 +606,7 @@ end
 def usage
    fullpathFile = File.expand_path(__FILE__)
       
-   value = `#{"head -57 #{fullpathFile}"}`
+   value = `#{"head -49 #{fullpathFile}"}`
       
    value.lines.drop(1).each{
       |line|

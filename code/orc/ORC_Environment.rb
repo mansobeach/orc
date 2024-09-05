@@ -1,18 +1,5 @@
 #!/usr/bin/env ruby
 
-#########################################################################
-###
-### === Ruby source for #ORC_Environment class
-###
-### === Written by DEIMOS Space S.L. (bolf)
-###
-### === Orchestrator (generic orchestrator)
-### 
-### Git: $Id: ORC_Environment.rb $Date$
-###
-### module ORC
-###
-#########################################################################
 
 require 'dotenv'
 require 'cuc/DirUtils'
@@ -22,11 +9,12 @@ module ORC
    
    include CUC::DirUtils
    
-   VERSION   = "0.0.18.0"
+   VERSION   = "0.0.19.0"
    
    ## ----------------------------------------------------------------
    
    CHANGE_RECORD = { \
+      "0.0.19"  =>   "Release in an independent repository", \
       "0.0.18"  =>   "New configuration rule for NAOS PLA_PGU", \
       "0.0.17"  =>   "Handling of previously archived inputs / reprocessing using orcQueueInput -d <file>", \
       "0.0.16"  =>   "New unit test for BOA generic configuration", \

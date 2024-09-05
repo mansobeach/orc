@@ -22,23 +22,6 @@
 #     --version             shows version number      
 #
 #
-# == Author
-#
-# DEIMOS-Space S.L.
-#
-#
-# == Copyright
-#
-# Copyright (c) 2009 ESA - DEIMOS Space S.L.
-#
-
-#########################################################################
-##
-## === ORC Orchestrator
-##
-## Git: $Id: orcIngester,v 1.2 2009/03/17 12:47:03 decdev Exp $
-##
-#########################################################################
 
 require 'getoptlong'
 
@@ -310,7 +293,7 @@ end
 def usage
    fullpathFile = File.expand_path(__FILE__)
       
-   value = `#{"head -33 #{fullpathFile}"}`
+   value = `#{"head -24 #{fullpathFile}"}`
       
    value.lines.drop(1).each{
       |line|

@@ -20,24 +20,6 @@
 #     --help                shows this help
 #     --version             shows version number      
 #
-#
-# == Author
-#
-# DEIMOS-Space S.L. (BOLF)
-#
-#
-# == Copyright
-#
-# Copyright (c) 2009 ESA - DEIMOS Space S.L.
-#
-
-#########################################################################
-#
-# === ORC -> Orchestrator
-#
-# Git: $Id: orcScheduler,v 1.3 2009/03/17 12:46:28 decdev Exp $
-#
-#########################################################################
 
 require 'getoptlong'
 
@@ -282,7 +264,7 @@ end
 def usage
    fullpathFile = File.expand_path(__FILE__)
       
-   value = `#{"head -33 #{fullpathFile}"}`
+   value = `#{"head -21 #{fullpathFile}"}`
       
    value.lines.drop(1).each{
       |line|
